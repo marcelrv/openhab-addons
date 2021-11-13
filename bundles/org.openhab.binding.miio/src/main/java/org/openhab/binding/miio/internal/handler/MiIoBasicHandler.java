@@ -175,7 +175,6 @@ public class MiIoBasicHandler extends MiIoAbstractHandler {
                             command = new DecimalType(((QuantityType<?>) command).toBigDecimal());
                         }
                     }
-<<<<<<< Upstream, based on main
                     if (paramType == CommandParameterType.OPENCLOSE) {
                         if (command instanceof OpenClosedType) {
                             value = new JsonPrimitive(command == OpenClosedType.OPEN ? "open" : "close");
@@ -198,26 +197,6 @@ public class MiIoBasicHandler extends MiIoAbstractHandler {
                         } else {
                             value = new JsonPrimitive(("ON".contentEquals(command.toString().toUpperCase())
                                     || "1".contentEquals(command.toString())) ? "on" : "off");
-=======
-                    if (paramType == CommandParameterType.OPENCLOSENUMBER) {
-                        if (command instanceof OpenClosedType) {
-                            value = new JsonPrimitive(command == OnOffType.ON ? 1 : 0);
-                        } else {
-                            value = new JsonPrimitive(
-                                    ("ON".contentEquals(command.toString()) || "1".contentEquals(command.toString()))
-                                            ? 1
-                                            : 0);
-                        }
-                    }
-                    if (paramType == CommandParameterType.OPENCLOSE) {
-                        if (command instanceof OpenClosedType) {
-                            value = new JsonPrimitive(command == OnOffType.ON ? "on" : "off");
-                        } else {
-                            value = new JsonPrimitive(
-                                    ("ON".contentEquals(command.toString()) || "1".contentEquals(command.toString()))
-                                            ? "on"
-                                            : "off");
->>>>>>> 5abec3e [miio] Implement lumi devices support for gateways v3 WIP
                         }
                     }
                     if (paramType == CommandParameterType.COLOR) {
@@ -354,7 +333,6 @@ public class MiIoBasicHandler extends MiIoAbstractHandler {
             if (!hasConnection() || skipUpdate() || miioCom == null) {
                 return;
             }
-            logger.debug("LAST ID {}", miioCom.getId());
             checkChannelStructure();
             if (!isIdentified) {
                 sendCommand(MiIoCommand.MIIO_INFO);
@@ -436,7 +414,7 @@ public class MiIoBasicHandler extends MiIoAbstractHandler {
 
     protected void sendRefreshProperties(String command, JsonArray getPropString) {
         JsonArray para = getPropString;
-        logger.debug("matching {} -{}  = {}", MiIoCommand.GET_DEVICE_PROPERTY_EXP.getCommand(), command,
+        logger.debug("Matching {} -{}  = {}", MiIoCommand.GET_DEVICE_PROPERTY_EXP.getCommand(), command,
                 MiIoCommand.GET_DEVICE_PROPERTY_EXP.getCommand().contentEquals(command));
         if (MiIoCommand.GET_DEVICE_PROPERTY_EXP.getCommand().contentEquals(command)) {
             // TODO: remove logging
@@ -474,14 +452,12 @@ public class MiIoBasicHandler extends MiIoAbstractHandler {
                         if (miChannel.getChannelCustomRefreshCommand().isBlank()) {
                             refreshList.add(miChannel);
                         } else {
-                            // String i = miChannel.getChannelCustomRefreshCommand().split("\\[")[0];
-                            String i = miChannel.getChannelCustomRefreshCommand();
-                            refreshListCustomCommands.put(i.trim(), miChannel);
+                            String cm = miChannel.getChannelCustomRefreshCommand();
+                            refreshListCustomCommands.put(cm.trim(), miChannel);
                         }
                     }
                 }
             }
-
         }
     }
 
@@ -796,10 +772,7 @@ public class MiIoBasicHandler extends MiIoAbstractHandler {
                     }
                     break;
                 default:
-
                     String channel = cmds.get(response.getId());
-                    logger.debug("locating for {}... dev: {} in queue {}", response.getMethod(), getThing().getUID(),
-                            cmds.size());
                     if (channel != null) {
                         logger.debug("Processing custom refresh command response for '{}' - {}", response.getMethod(),
                                 response.getResult());
@@ -820,6 +793,9 @@ public class MiIoBasicHandler extends MiIoAbstractHandler {
                             }
                         }
                         cmds.remove(response.getId());
+                    } else {
+                        logger.debug("Could not identify channel for {}... dev: {} in queue {}", response.getMethod(),
+                                getThing().getUID(), cmds.size());
                     }
                     break;
             }
