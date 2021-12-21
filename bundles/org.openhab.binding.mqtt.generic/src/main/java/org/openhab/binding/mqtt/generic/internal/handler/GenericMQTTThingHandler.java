@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.mqtt.generic.AbstractMQTTThingHandler;
@@ -85,6 +85,9 @@ public class GenericMQTTThingHandler extends AbstractMQTTThingHandler implements
      */
     @Override
     protected CompletableFuture<@Nullable Void> start(MqttBrokerConnection connection) {
+        // availability topics are also started asynchronously, so no problem here
+        clearAllAvailabilityTopics();
+        initializeAvailabilityTopicsFromConfig();
         return channelStateByChannelUID.values().stream().map(c -> c.start(connection, scheduler, 0))
                 .collect(FutureCollector.allOf()).thenRun(this::calculateThingStatus);
     }
@@ -142,15 +145,7 @@ public class GenericMQTTThingHandler extends AbstractMQTTThingHandler implements
 
     @Override
     public void initialize() {
-        GenericThingConfiguration config = getConfigAs(GenericThingConfiguration.class);
-
-        String availabilityTopic = config.availabilityTopic;
-
-        if (availabilityTopic != null) {
-            addAvailabilityTopic(availabilityTopic, config.payloadAvailable, config.payloadNotAvailable);
-        } else {
-            clearAllAvailabilityTopics();
-        }
+        initializeAvailabilityTopicsFromConfig();
 
         List<ChannelUID> configErrors = new ArrayList<>();
         for (Channel channel : thing.getChannels()) {
@@ -164,9 +159,8 @@ public class GenericMQTTThingHandler extends AbstractMQTTThingHandler implements
                 Value value = ValueFactory.createValueState(channelConfig, channelTypeUID.getId());
                 ChannelState channelState = createChannelState(channelConfig, channel.getUID(), value);
                 channelStateByChannelUID.put(channel.getUID(), channelState);
-                StateDescription description = value
-                        .createStateDescription(StringUtils.isBlank(channelConfig.commandTopic)).build()
-                        .toStateDescription();
+                StateDescription description = value.createStateDescription(channelConfig.commandTopic.isBlank())
+                        .build().toStateDescription();
                 if (description != null) {
                     stateDescProvider.setDescription(channel.getUID(), description);
                 }
@@ -192,6 +186,18 @@ public class GenericMQTTThingHandler extends AbstractMQTTThingHandler implements
             updateStatus(ThingStatus.ONLINE, ThingStatusDetail.NONE);
         } else {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.NONE);
+        }
+    }
+
+    private void initializeAvailabilityTopicsFromConfig() {
+        GenericThingConfiguration config = getConfigAs(GenericThingConfiguration.class);
+
+        String availabilityTopic = config.availabilityTopic;
+
+        if (availabilityTopic != null) {
+            addAvailabilityTopic(availabilityTopic, config.payloadAvailable, config.payloadNotAvailable);
+        } else {
+            clearAllAvailabilityTopics();
         }
     }
 }

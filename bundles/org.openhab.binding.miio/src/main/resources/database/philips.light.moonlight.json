@@ -8,10 +8,8 @@
 				"property": "pow",
 				"friendlyName": "Power",
 				"channel": "power",
-				"channelType": "power",
 				"type": "Switch",
 				"refresh": true,
-				"ChannelGroup": "",
 				"actions": [
 					{
 						"command": "set_power",
@@ -23,7 +21,6 @@
 				"property": "bright",
 				"friendlyName": "Brightness",
 				"channel": "brightness",
-				"channelType": "brightness",
 				"type": "Dimmer",
 				"refresh": true,
 				"ChannelGroup": "actions",
@@ -42,13 +39,17 @@
 							"name": "BrightnessOnOff"
 						}
 					}
+				],
+				"category": "light",
+				"tags": [
+					"Control",
+					"Light"
 				]
 			},
 			{
 				"property": "cct",
 				"friendlyName": "Correlated Color Temperature",
 				"channel": "cct",
-				"channelType": "cct",
 				"type": "Dimmer",
 				"refresh": true,
 				"ChannelGroup": "actions",
@@ -63,7 +64,6 @@
 				"property": "snm",
 				"friendlyName": "Scene",
 				"channel": "scene",
-				"channelType": "scene",
 				"type": "Number",
 				"refresh": true,
 				"ChannelGroup": "actions",
@@ -78,7 +78,6 @@
 				"property": "dv",
 				"friendlyName": "DV",
 				"channel": "dv",
-				"channelType": "dv",
 				"type": "Number",
 				"refresh": true,
 				"ChannelGroup": "actions",
@@ -92,7 +91,6 @@
 				"property": "",
 				"friendlyName": "Go Night",
 				"channel": "gonight",
-				"channelType": "gonight",
 				"type": "Switch",
 				"refresh": false,
 				"ChannelGroup": "actions",
@@ -107,7 +105,6 @@
 				"property": "",
 				"friendlyName": "Delay Off",
 				"channel": "delayoff",
-				"channelType": "delayoff",
 				"type": "Switch",
 				"refresh": false,
 				"ChannelGroup": "actions",

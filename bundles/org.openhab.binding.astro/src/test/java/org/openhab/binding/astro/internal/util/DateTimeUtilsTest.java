@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -61,6 +61,19 @@ public class DateTimeUtilsTest {
         assertNextSeason(season.getWinter(), MAY_20_2020, season);
         assertNextSeason(season.getSummer(), SEPT_20_2020, season);
         assertNextSeason(season.getAutumn(), DEC_10_2020, season);
+    }
+
+    @Test
+    void testTruncate() {
+        Calendar cal = newCalendar(2021, 9, 30, 11, 54, TIME_ZONE);
+        Calendar target = newCalendar(2021, 9, 30, 0, 0, TIME_ZONE);
+        Calendar truncated = DateTimeUtils.truncateToMidnight(cal);
+        assertEquals(truncated, target);
+        Calendar endOfDay = DateTimeUtils.endOfDayDate(cal);
+        Calendar target2 = new GregorianCalendar(2021, 9, 30, 23, 59, 59);
+        target2.setTimeZone(TIME_ZONE);
+        target2.set(Calendar.MILLISECOND, 999);
+        assertEquals(endOfDay, target2);
     }
 
     private void assertNextSeason(Calendar expectedSeason, Calendar date, Season season) {

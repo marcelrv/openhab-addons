@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -38,6 +38,7 @@ import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
+import org.openhab.core.library.unit.Units;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
@@ -54,7 +55,6 @@ import com.google.gson.GsonBuilder;
  */
 @NonNullByDefault
 public class SOAPValueConverter {
-    private static final int REQUEST_TIMEOUT = 5000; // in ms
     private final Logger logger = LoggerFactory.getLogger(SOAPValueConverter.class);
     private final HttpClient httpClient;
 
@@ -83,8 +83,10 @@ public class SOAPValueConverter {
                 return Optional.empty();
             }
             switch (dataType) {
+                case "ui1":
                 case "ui2":
                     return Optional.of(String.valueOf(value.shortValue()));
+                case "i4":
                 case "ui4":
                     return Optional.of(String.valueOf(value.intValue()));
                 default:
@@ -92,8 +94,10 @@ public class SOAPValueConverter {
         } else if (command instanceof DecimalType) {
             BigDecimal value = ((DecimalType) command).toBigDecimal();
             switch (dataType) {
+                case "ui1":
                 case "ui2":
                     return Optional.of(String.valueOf(value.shortValue()));
+                case "i4":
                 case "ui4":
                     return Optional.of(String.valueOf(value.intValue()));
                 default:
@@ -131,7 +135,9 @@ public class SOAPValueConverter {
                     return rawValue.equals("0") ? OnOffType.OFF : OnOffType.ON;
                 case "string":
                     return new StringType(rawValue);
+                case "ui1":
                 case "ui2":
+                case "i4":
                 case "ui4":
                     if (!unit.isEmpty()) {
                         return new QuantityType<>(rawValue + " " + unit);
@@ -164,6 +170,49 @@ public class SOAPValueConverter {
             }
             return null;
         }).or(Optional::empty);
+    }
+
+    /**
+     * post processor to map mac device signal strength to system.signal-strength 0-4
+     *
+     * @param state with signalStrength
+     * @param channelConfig channel config of the mac signal strength
+     * @return the mapped system.signal-strength in range 0-4
+     */
+    @SuppressWarnings("unused")
+    private State processMacSignalStrength(State state, Tr064ChannelConfig channelConfig) {
+        State mappedSignalStrength = UnDefType.UNDEF;
+        DecimalType currentStateValue = state.as(DecimalType.class);
+
+        if (currentStateValue != null) {
+            if (currentStateValue.intValue() > 80) {
+                mappedSignalStrength = new DecimalType(4);
+            } else if (currentStateValue.intValue() > 60) {
+                mappedSignalStrength = new DecimalType(3);
+            } else if (currentStateValue.intValue() > 40) {
+                mappedSignalStrength = new DecimalType(2);
+            } else if (currentStateValue.intValue() > 20) {
+                mappedSignalStrength = new DecimalType(1);
+            } else {
+                mappedSignalStrength = new DecimalType(0);
+            }
+        }
+
+        return mappedSignalStrength;
+    }
+
+    /**
+     * post processor for decibel values (which are served as deca decibel)
+     *
+     * @param state the channel value in deca decibel
+     * @param channelConfig channel config of the channel
+     * @return the state converted to decibel
+     */
+    @SuppressWarnings("unused")
+    private State processDecaDecibel(State state, Tr064ChannelConfig channelConfig) {
+        Float value = state.as(DecimalType.class).floatValue() / 10;
+
+        return new QuantityType(value, Units.DECIBEL);
     }
 
     /**

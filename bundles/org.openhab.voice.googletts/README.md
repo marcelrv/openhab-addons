@@ -27,18 +27,18 @@ Before you can integrate this service with your Google Cloud Text-to-Speech, you
 * Set up authentication:
   * Go to the "APIs & Services" -> "Credentials" page in the GCP Console and your project. [link](https://console.cloud.google.com/apis/credentials)
   * From the "Create credentials" drop-down list, select "OAuth client ID.
-  * Select application type "Other" and enter a name into the "Name" field.
+  * Select application type "TV and Limited Input" and enter a name into the "Name" field.
   * Click Create. A pop-up appears, showing your "client ID" and "client secret".
 
 ## Service Configuration
 
-Using your favorite configuration UI (e.g. Paper UI) edit **Services / Voice / Google Cloud Text-to-Speech** settings and set:
+Using your favorite configuration UI to edit **Settings / Other Services - Google Cloud Text-to-Speech** and set:
 
 * **Client Id** - Google Cloud Platform OAuth 2.0-Client Id.
 * **Client Secret** - Google Cloud Platform OAuth 2.0-Client Secret.
 * **Authorization Code** - The auth-code is a one-time code needed to retrieve the necessary access-codes from Google Cloud Platform.
 **Please go to your browser ...**
-[https://accounts.google.com/o/oauth2/auth?client_id={{clientId}}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=https://www.googleapis.com/auth/cloud-platform&response_type=code](https://accounts.google.com/o/oauth2/auth?client_id={{clientId}}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=https://www.googleapis.com/auth/cloud-platform&response_type=code) (replace `{{clientId}}` by your Client Id)
+[https://accounts.google.com/o/oauth2/auth?client_id=<clientId>&redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=https://www.googleapis.com/auth/cloud-platform&response_type=code](https://accounts.google.com/o/oauth2/auth?client_id=<clientId>&redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=https://www.googleapis.com/auth/cloud-platform&response_type=code) (replace `<clientId>` by your Client Id)
 **... to generate an auth-code and paste it here**.
 After initial authorization, this code is not needed anymore.
 It is recommended to clear this configuration parameter afterwards.
@@ -54,7 +54,7 @@ Make sure to disable this setting again so the cache is maintained after restart
 
 Using your favorite configuration UI:
 
-* Edit **System** settings.
-* Edit **Voice** settings.
+* Go to **Settings**.
+* Edit **System Services - Voice**.
 * Set **Google Cloud** as **Default Text-to-Speech**.
-* Choose default voice for the setup.
+* Choose your preferred **Default Voice** for your setup.

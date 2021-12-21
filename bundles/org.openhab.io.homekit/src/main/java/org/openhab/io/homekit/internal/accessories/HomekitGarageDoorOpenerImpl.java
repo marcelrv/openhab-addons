@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -24,7 +24,6 @@ import org.openhab.core.items.Item;
 import org.openhab.core.library.items.StringItem;
 import org.openhab.core.library.items.SwitchItem;
 import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.io.homekit.internal.HomekitAccessoryUpdater;
 import org.openhab.io.homekit.internal.HomekitSettings;
@@ -50,7 +49,7 @@ public class HomekitGarageDoorOpenerImpl extends AbstractHomekitAccessoryImpl im
     public HomekitGarageDoorOpenerImpl(HomekitTaggedItem taggedItem, List<HomekitTaggedItem> mandatoryCharacteristics,
             HomekitAccessoryUpdater updater, HomekitSettings settings) throws IncompleteAccessoryException {
         super(taggedItem, mandatoryCharacteristics, updater, settings);
-        obstructionReader = createBooleanReader(OBSTRUCTION_STATUS, OnOffType.ON, OpenClosedType.OPEN);
+        obstructionReader = createBooleanReader(OBSTRUCTION_STATUS);
         getServices().add(new GarageDoorOpenerService(this));
     }
 
@@ -75,7 +74,7 @@ public class HomekitGarageDoorOpenerImpl extends AbstractHomekitAccessoryImpl im
         } else if (stringValue.equalsIgnoreCase(settings.doorCurrentStateOpening)) {
             mode = CurrentDoorStateEnum.OPENING;
         } else if (stringValue.equalsIgnoreCase(settings.doorCurrentStateStopped)) {
-            mode = CurrentDoorStateEnum.SOPPED;
+            mode = CurrentDoorStateEnum.STOPPED;
         } else if (stringValue.equals("UNDEF") || stringValue.equals("NULL")) {
             logger.warn("Current door state not available. Relaying value of CLOSED to HomeKit");
             mode = CurrentDoorStateEnum.CLOSED;

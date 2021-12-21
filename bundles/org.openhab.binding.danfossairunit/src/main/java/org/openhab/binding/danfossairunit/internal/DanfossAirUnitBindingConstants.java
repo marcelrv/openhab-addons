@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -29,12 +29,6 @@ import org.openhab.core.thing.ThingTypeUID;
 public class DanfossAirUnitBindingConstants {
 
     public static String BINDING_ID = "danfossairunit";
-
-    // List of all Thing Type UIDs
-    public static ThingTypeUID THING_TYPE_SAMPLE = new ThingTypeUID(BINDING_ID, "sample");
-
-    // List of all Channel ids
-    public static String CHANNEL_1 = "channel1";
 
     // The only thing type UIDs
     public static ThingTypeUID THING_TYPE_AIRUNIT = new ThingTypeUID(BINDING_ID, "airunit");

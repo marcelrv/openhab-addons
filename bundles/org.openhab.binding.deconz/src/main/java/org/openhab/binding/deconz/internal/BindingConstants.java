@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -15,7 +15,6 @@ package org.openhab.binding.deconz.internal;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.ThingTypeUID;
-import org.openhab.core.thing.type.ChannelTypeUID;
 
 /**
  * The {@link BindingConstants} class defines common constants, which are
@@ -70,6 +69,7 @@ public class BindingConstants {
 
     // sensor channel ids
     public static final String CHANNEL_PRESENCE = "presence";
+    public static final String CHANNEL_ENABLED = "enabled";
     public static final String CHANNEL_LAST_UPDATED = "last_updated";
     public static final String CHANNEL_LAST_SEEN = "last_seen";
     public static final String CHANNEL_POWER = "power";
@@ -117,11 +117,7 @@ public class BindingConstants {
     public static final String CHANNEL_EFFECT = "effect";
     public static final String CHANNEL_EFFECT_SPEED = "effectSpeed";
     public static final String CHANNEL_SCENE = "scene";
-
-    // channel uids
-    public static final ChannelTypeUID CHANNEL_EFFECT_TYPE_UID = new ChannelTypeUID(BINDING_ID, CHANNEL_EFFECT);
-    public static final ChannelTypeUID CHANNEL_EFFECT_SPEED_TYPE_UID = new ChannelTypeUID(BINDING_ID,
-            CHANNEL_EFFECT_SPEED);
+    public static final String CHANNEL_ONTIME = "ontime";
 
     // Thing configuration
     public static final String CONFIG_HOST = "host";

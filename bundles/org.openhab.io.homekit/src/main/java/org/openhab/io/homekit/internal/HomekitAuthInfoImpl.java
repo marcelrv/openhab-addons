@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -44,18 +44,26 @@ public class HomekitAuthInfoImpl implements HomekitAuthInfo {
     private String mac;
     private BigInteger salt;
     private byte[] privateKey;
-    private final String pin;
+    private String pin;
+    private String setupId;
+    private boolean blockUserDeletion;
 
-    public HomekitAuthInfoImpl(Storage<String> storage, String pin) throws InvalidAlgorithmParameterException {
+    public HomekitAuthInfoImpl(Storage<String> storage, String pin, String setupId, boolean blockUserDeletion)
+            throws InvalidAlgorithmParameterException {
         this.storage = storage;
         this.pin = pin;
+        this.setupId = setupId;
+        this.blockUserDeletion = blockUserDeletion;
         initializeStorage();
     }
 
     @Override
     public void createUser(String username, byte[] publicKey) {
-        logger.trace("Create user {}", username);
-        storage.put(createUserKey(username), Base64.getEncoder().encodeToString(publicKey));
+        logger.trace("create user {}", username);
+        final String userKey = createUserKey(username);
+        final String encodedPublicKey = Base64.getEncoder().encodeToString(publicKey);
+        storage.put(userKey, encodedPublicKey);
+        logger.trace("stored user key {} with value {}", userKey, encodedPublicKey);
     }
 
     @Override
@@ -63,9 +71,26 @@ public class HomekitAuthInfoImpl implements HomekitAuthInfo {
         return mac;
     }
 
+    public void setMac(String mac) {
+        this.mac = mac;
+    }
+
     @Override
     public String getPin() {
         return pin;
+    }
+
+    public void setPin(String pin) {
+        this.pin = pin;
+    }
+
+    @Override
+    public String getSetupId() {
+        return setupId;
+    }
+
+    public void setSetupId(String setupId) {
+        this.setupId = setupId;
     }
 
     @Override
@@ -90,8 +115,12 @@ public class HomekitAuthInfoImpl implements HomekitAuthInfo {
 
     @Override
     public void removeUser(String username) {
-        logger.trace("Remove user {}", username);
-        storage.remove(createUserKey(username));
+        logger.trace("remove user {}", username);
+        if (!this.blockUserDeletion) {
+            storage.remove(createUserKey(username));
+        } else {
+            logger.debug("deletion of the user was blocked by binding settings");
+        }
     }
 
     @Override
@@ -101,11 +130,15 @@ public class HomekitAuthInfoImpl implements HomekitAuthInfo {
     }
 
     public void clear() {
-        logger.trace("Clear all users");
-        for (String key : new HashSet<>(storage.getKeys())) {
-            if (isUserKey(key)) {
-                storage.remove(key);
+        logger.trace("clear all users");
+        if (!this.blockUserDeletion) {
+            for (String key : new HashSet<>(storage.getKeys())) {
+                if (isUserKey(key)) {
+                    storage.remove(key);
+                }
             }
+        } else {
+            logger.debug("deletion of users information was blocked by binding settings");
         }
     }
 
@@ -123,7 +156,7 @@ public class HomekitAuthInfoImpl implements HomekitAuthInfo {
         final @Nullable Object privateKeyConfig = storage.get(STORAGE_PRIVATE_KEY);
         if (mac == null) {
             logger.warn(
-                    "Could not find existing MAC in {}. Generating new MAC. This will require re-pairing of iOS devices.",
+                    "could not find existing MAC in {}. Generating new MAC. This will require re-pairing of iOS devices.",
                     storage.getClass().getName());
             mac = HomekitServer.generateMac();
             storage.put(STORAGE_MAC, mac);

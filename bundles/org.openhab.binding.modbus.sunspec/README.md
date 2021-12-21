@@ -35,7 +35,7 @@ You can set the `enableDiscovery=true` parameter in your bridge.
 A typical bridge configuration would look like this:
 
 ```
-Bridge modbus:tcp:bridge [ host="10.0.0.2", port=502, id=1, enableDiscovery=true ]
+Bridge modbus:tcp:modbusBridgeName [ host="10.0.0.2", port=502, id=1, enableDiscovery=true ]
 ```
 
 ## Thing Configuration
@@ -109,7 +109,7 @@ This group contains summarized values for the power meter over all phases.
 | ac-total-reactive-power              | Number:Power             | Total Reactive Power over all phases (W)                            |
 | ac-average-power-factor              | Number:Dimensionless     | Average AC Power Factor over all phases (%)                         |
 | ac-total-exported-real-energy        | Number:Energy            | Total Real Energy Exported over all phases (Wh)                     |
-| ac-total-imported-real-energy        | Number:Energy            | Total Real Energy Imported  over all phases (Wh)                    |
+| ac-total-imported-real-energy        | Number:Energy            | Total Real Energy Imported over all phases (Wh)                     |
 | ac-total-exported-apparent-energy    | Number:Energy            | Total Apparent Energy Exported over all phases (VAh)                |
 | ac-total-imported-apparent-energy    | Number:Energy            | Total Apparent Energy Imported over all phases (VAh)                |
 | ac-total-imported-reactive-energy-q1 | Number:Energy            | Total Reactive Energy Imported Quadrant 1 over all phases (VARh)    |
@@ -134,7 +134,7 @@ acPhaseC: available only for inverter-three-phase type inverters.
 
 | Channel ID           | Item Type                | Description                                                         |
 |----------------------|--------------------------|---------------------------------------------------------------------|
-| ac-phase-current     | Number:ElectricCurrent   | Actual current over this phase in Watts                             |
+| ac-phase-current     | Number:ElectricCurrent   | Actual current over this phase in Ampere                            |
 | ac-voltage-to-next   | Number:ElectricPotential | Voltage of this phase relative to the next phase, or to the ground in case of single phase inverter. Note: some single phase SolarEdge inverters incorrectly use this value to report the voltage to neutral value|
 | ac-voltage-to-n      | Number:ElectricPotential | Voltage of this phase relative to the ground                        |
 
@@ -189,8 +189,8 @@ Supported by: all inverter things
 ### Thing Configuration
 
 ```
-Bridge modbus:tcp:bridge [ host="hostname|ip", port=502, id=1, enableDiscovery=true ]
-Thing modbus:inverter-single-phase:bridge:se4000h "SE4000h" (modbus:tcp:modbusbridge) [ address=40069, length=52, refresh=15 ]
+Bridge modbus:tcp:modbusBridgeName [ host="hostname|ip", port=502, id=1, enableDiscovery=true ]
+Thing modbus:inverter-single-phase:bridge:myInverter "SE4000h" (modbus:tcp:modbusBridgeName) [ address=40069, length=52, refresh=15 ]
 ```
 
 Note: Make sure that refresh, port and id values are numerical, without quotes.

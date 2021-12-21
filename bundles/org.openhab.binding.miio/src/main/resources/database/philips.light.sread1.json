@@ -9,22 +9,23 @@
 				"property": "power",
 				"friendlyName": "Power",
 				"channel": "power",
-				"channelType": "power",
 				"type": "Switch",
 				"refresh": true,
-				"ChannelGroup": "",
 				"actions": [
 					{
 						"command": "set_power",
 						"parameterType": "ONOFF"
 					}
+				],
+				"category": "switch",
+				"tags": [
+					"Switch"
 				]
 			},
 			{
 				"property": "bright",
 				"friendlyName": "Brightness",
 				"channel": "brightness",
-				"channelType": "brightness",
 				"type": "Dimmer",
 				"refresh": true,
 				"ChannelGroup": "actions",
@@ -43,13 +44,17 @@
 							"name": "BrightnessOnOff"
 						}
 					}
+				],
+				"category": "light",
+				"tags": [
+					"Control",
+					"Light"
 				]
 			},
 			{
 				"property": "ambstatus",
 				"friendlyName": "Ambient Power",
 				"channel": "ambientPower",
-				"channelType": "ambientPower",
 				"type": "Switch",
 				"refresh": true,
 				"ChannelGroup": "actions",
@@ -64,7 +69,6 @@
 				"property": "ambvalue",
 				"friendlyName": "Ambient Brightness",
 				"channel": "ambientBrightness",
-				"channelType": "ambientBrightness",
 				"type": "Number",
 				"refresh": true,
 				"ChannelGroup": "actions",
@@ -79,17 +83,18 @@
 				"property": "dvalue",
 				"friendlyName": "Ambient Illumination",
 				"channel": "illumination",
-				"channelType": "illumination",
 				"type": "Number",
+				"stateDescription": {
+					"pattern": "%.1f",
+					"readOnly": true
+				},
 				"refresh": true,
-				"ChannelGroup": "",
 				"actions": []
 			},
 			{
 				"property": "eyecare",
 				"friendlyName": "Eyecare",
 				"channel": "eyecare",
-				"channelType": "eyecare",
 				"type": "Switch",
 				"refresh": true,
 				"ChannelGroup": "actions",

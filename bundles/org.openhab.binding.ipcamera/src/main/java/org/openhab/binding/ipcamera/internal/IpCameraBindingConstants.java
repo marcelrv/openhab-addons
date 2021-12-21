@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -10,9 +10,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-
 package org.openhab.binding.ipcamera.internal;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -42,6 +42,11 @@ public class IpCameraBindingConstants {
         MJPEG,
         SNAPSHOT
     }
+
+    public static final BigDecimal BIG_DECIMAL_SCALE_MOTION = new BigDecimal(5000);
+    public static final long HLS_STARTUP_DELAY_MS = 4500;
+    @SuppressWarnings("null")
+    public static final int SERVLET_PORT = Integer.getInteger("org.osgi.service.http.port", 8080);
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_GROUP = new ThingTypeUID(BINDING_ID, "group");
@@ -127,7 +132,10 @@ public class IpCameraBindingConstants {
     public static final String CHANNEL_EXTERNAL_LIGHT = "externalLight";
     public static final String CHANNEL_DOORBELL = "doorBell";
     public static final String CHANNEL_LAST_MOTION_TYPE = "lastMotionType";
+    public static final String CHANNEL_LAST_EVENT_DATA = "lastEventData";
     public static final String CHANNEL_GOTO_PRESET = "gotoPreset";
     public static final String CHANNEL_START_STREAM = "startStream";
     public static final String CHANNEL_ENABLE_PRIVACY_MODE = "enablePrivacyMode";
+    public static final String CHANNEL_CAR_ALARM = "carAlarm";
+    public static final String CHANNEL_HUMAN_ALARM = "humanAlarm";
 }

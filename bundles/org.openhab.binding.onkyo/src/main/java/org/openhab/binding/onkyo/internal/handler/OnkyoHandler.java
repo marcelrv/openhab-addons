@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -30,6 +30,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.openhab.binding.onkyo.internal.OnkyoAlbumArt;
 import org.openhab.binding.onkyo.internal.OnkyoConnection;
 import org.openhab.binding.onkyo.internal.OnkyoEventListener;
+import org.openhab.binding.onkyo.internal.OnkyoParserHelper;
 import org.openhab.binding.onkyo.internal.OnkyoStateDescriptionProvider;
 import org.openhab.binding.onkyo.internal.ServiceType;
 import org.openhab.binding.onkyo.internal.automation.modules.OnkyoThingActions;
@@ -120,8 +121,7 @@ public class OnkyoHandler extends UpnpAudioSinkHandler implements OnkyoEventList
             connection.openConnection();
             if (connection.isConnected()) {
                 updateStatus(ThingStatus.ONLINE);
-
-                sendCommand(EiscpCommand.INFO_QUERY);
+                checkStatus();
             }
         });
 
@@ -324,7 +324,27 @@ public class OnkyoHandler extends UpnpAudioSinkHandler implements OnkyoEventList
                     sendCommand(EiscpCommand.NETUSB_TITLE_QUERY);
                 }
                 break;
+            case CHANNEL_AUDIOINFO:
+                if (command.equals(RefreshType.REFRESH)) {
+                    sendCommand(EiscpCommand.AUDIOINFO_QUERY);
+                }
+                break;
 
+            /*
+             * MEDIA INFO
+             */
+            case CHANNEL_AUDIO_IN_INFO:
+            case CHANNEL_AUDIO_OUT_INFO:
+                if (command.equals(RefreshType.REFRESH)) {
+                    sendCommand(EiscpCommand.AUDIOINFO_QUERY);
+                }
+                break;
+            case CHANNEL_VIDEO_IN_INFO:
+            case CHANNEL_VIDEO_OUT_INFO:
+                if (command.equals(RefreshType.REFRESH)) {
+                    sendCommand(EiscpCommand.VIDEOINFO_QUERY);
+                }
+                break;
             /*
              * MISC
              */
@@ -477,7 +497,16 @@ public class OnkyoHandler extends UpnpAudioSinkHandler implements OnkyoEventList
                 /*
                  * MISC
                  */
-
+                case AUDIOINFO:
+                    updateState(CHANNEL_AUDIOINFO, convertDeviceValueToOpenHabState(data.getValue(), StringType.class));
+                    logger.debug("audioinfo message: '{}'", data.getValue());
+                    updateState(CHANNEL_AUDIO_IN_INFO, OnkyoParserHelper.infoBuilder(data.getValue(), 0, 2));
+                    updateState(CHANNEL_AUDIO_OUT_INFO, OnkyoParserHelper.infoBuilder(data.getValue(), 3, 5));
+                    break;
+                case VIDEOINFO:
+                    updateState(CHANNEL_VIDEO_IN_INFO, OnkyoParserHelper.infoBuilder(data.getValue(), 0, 3));
+                    updateState(CHANNEL_VIDEO_OUT_INFO, OnkyoParserHelper.infoBuilder(data.getValue(), 4, 7));
+                    break;
                 case INFO:
                     processInfo(data.getValue());
                     logger.debug("Info message: '{}'", data.getValue());
@@ -498,6 +527,12 @@ public class OnkyoHandler extends UpnpAudioSinkHandler implements OnkyoEventList
     private void processInfo(String infoXML) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            // see https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            factory.setXIncludeAware(false);
+            factory.setExpandEntityReferences(false);
             DocumentBuilder builder = factory.newDocumentBuilder();
             try (StringReader sr = new StringReader(infoXML)) {
                 InputSource is = new InputSource(sr);
@@ -791,6 +826,8 @@ public class OnkyoHandler extends UpnpAudioSinkHandler implements OnkyoEventList
             sendCommand(EiscpCommand.NETUSB_TITLE_QUERY);
             sendCommand(EiscpCommand.LISTEN_MODE_QUERY);
             sendCommand(EiscpCommand.INFO_QUERY);
+            sendCommand(EiscpCommand.AUDIOINFO_QUERY);
+            sendCommand(EiscpCommand.VIDEOINFO_QUERY);
 
             if (isChannelAvailable(CHANNEL_POWERZONE2)) {
                 sendCommand(EiscpCommand.ZONE2_POWER_QUERY);

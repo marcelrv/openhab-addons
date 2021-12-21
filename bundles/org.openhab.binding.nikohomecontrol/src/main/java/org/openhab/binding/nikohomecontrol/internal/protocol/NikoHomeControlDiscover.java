@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -70,7 +70,7 @@ public final class NikoHomeControlDiscover {
             datagramSocket.send(discoveryPacket);
             while (true) {
                 datagramSocket.receive(packet);
-                logger.trace("Niko Home Control: bridge discovery response {}",
+                logger.trace("bridge discovery response {}",
                         HexUtils.bytesToHex(Arrays.copyOf(packet.getData(), packet.getLength())));
                 if (isNhc(packet)) {
                     break;
@@ -79,7 +79,7 @@ public final class NikoHomeControlDiscover {
             addr = packet.getAddress();
             setNhcBridgeId(packet);
             setIsNhcII(packet);
-            logger.debug("Niko Home Control: IP address is {}, unique ID is {}", addr, nhcBridgeId);
+            logger.debug("IP address is {}, unique ID is {}", addr, nhcBridgeId);
         }
     }
 
@@ -105,10 +105,7 @@ public final class NikoHomeControlDiscover {
      */
     private boolean isNhc(DatagramPacket packet) {
         byte[] packetData = packet.getData();
-        if ((packet.getLength() > 2) && (packetData[0] == 0x44)) {
-            return true;
-        }
-        return false;
+        return ((packet.getLength() > 2) && (packetData[0] == 0x44));
     }
 
     /**

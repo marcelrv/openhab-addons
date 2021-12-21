@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -56,11 +56,11 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class OpenUVReportHandler extends BaseThingHandler {
-    private static final DecimalType ALERT_GREEN = DecimalType.ZERO;
-    private static final DecimalType ALERT_YELLOW = new DecimalType(1);
-    private static final DecimalType ALERT_ORANGE = new DecimalType(2);
-    private static final DecimalType ALERT_RED = new DecimalType(3);
-    private static final DecimalType ALERT_PURPLE = new DecimalType(4);
+    private static final State ALERT_GREEN = DecimalType.ZERO;
+    private static final State ALERT_YELLOW = new DecimalType(1);
+    private static final State ALERT_ORANGE = new DecimalType(2);
+    private static final State ALERT_RED = new DecimalType(3);
+    private static final State ALERT_PURPLE = new DecimalType(4);
     private static final State ALERT_UNDEF = HSBType.fromRGB(179, 179, 179);
 
     private static final Map<State, State> ALERT_COLORS = Map.of(ALERT_GREEN, HSBType.fromRGB(85, 139, 47),
@@ -86,11 +86,11 @@ public class OpenUVReportHandler extends BaseThingHandler {
 
         if (config.refresh < 3) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-                    "Parameter 'refresh' must be higher than 3 minutes to stay in free API plan");
+                    "@text/offline.config-error-invalid-refresh");
         } else {
             Bridge bridge = getBridge();
             if (bridge == null) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Invalid bridge");
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_UNINITIALIZED);
             } else {
                 bridgeHandler = (OpenUVBridgeHandler) bridge.getHandler();
                 updateStatus(ThingStatus.UNKNOWN);
@@ -181,7 +181,7 @@ public class OpenUVReportHandler extends BaseThingHandler {
             });
         } else if (ELEVATION.equals(channelUID.getId()) && command instanceof QuantityType) {
             QuantityType<?> qtty = (QuantityType<?>) command;
-            if (qtty.getUnit() == Units.DEGREE_ANGLE) {
+            if (Units.DEGREE_ANGLE.equals(qtty.getUnit())) {
                 suspendUpdates = qtty.doubleValue() < 0;
             } else {
                 logger.info("The OpenUV Report handles Sun Elevation of Number:Angle type, {} does not fit.", command);

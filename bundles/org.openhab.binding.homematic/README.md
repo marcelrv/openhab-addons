@@ -130,26 +130,11 @@ Hint for the binding to identify the gateway type (auto|ccu|noccu) (default = "a
 - **callbackHost**
 Callback network address of the system runtime, default is auto-discovery
 
-- **bindAddress**
-The address the XML-/BINRPC server binds to, default is value of "callbackHost"
-
-- **callbackPort** (DEPRECATED, use "binCallbackPort" resp. "xmlCallbackPort")
-Callback port of the binding's server, default is 9125 and counts up for each additional bridge
-
 - **xmlCallbackPort**
 Callback port of the binding's XML-RPC server, default is 9125 and counts up for each additional bridge
 
 - **binCallbackPort**
 Callback port of the binding's BIN-RPC server, default is 9126 and counts up for each additional bridge
-
-- **aliveInterval** (DEPRECATED, not necessary anymore)
-The interval in seconds to check if the communication with the Homematic gateway is still alive. If no message receives from the Homematic gateway, the RPC server restarts (default = 300)
-
-- **reconnectInterval** (DEPRECATED, not necessary anymore)
-The interval in seconds to force a reconnect to the Homematic gateway, disables "aliveInterval"! (0 = disabled, default = disabled).
-If you have no sensors which sends messages in regular intervals and/or you have low communication, the "aliveInterval" may restart the connection to the Homematic gateway to often.
-The "reconnectInterval" disables the "aliveInterval" and reconnects after a fixed period of time.
-Think in hours when configuring (one hour = 3600)
 
 - **timeout**
 The timeout in seconds for connections to a Homematic gateway (default = 15)
@@ -172,6 +157,13 @@ The port number of the HMIP server (default = 2010)
 - **cuxdPort**
 The port number of the CUxD daemon (default = 8701)
 
+- **groupPort**
+The port number of the Group daemon (default = 9292)
+
+- **callbackRegTimeout**
+Maximum time in seconds for callback registration in the Homematic gateway (default = 120s).
+For a CCU2, the value may need to be increased to 180s.
+
 - **installModeDuration**
 Time in seconds that the controller will be in install mode when a device discovery is initiated (default = 60)
 
@@ -182,6 +174,11 @@ If set to true, devices are automatically unpaired from the gateway when their c
 - **factoryResetOnDeletion**
 If set to true, devices are automatically factory reset when their corresponding things are removed.
 Due to the factory reset, the device will also be unpaired from the gateway, even if "unpairOnDeletion" is set to false! (default = false)
+
+- **bufferSize** 
+If a large number of devices are connected to the gateway, the default buffersize of 2048 kB may be too small for communication with the gateway. 
+In this case, e.g. the discovery fails. 
+With this setting the buffer size can be adjusted. The value is specified in kB.
 
 The syntax for a bridge is:
 
@@ -216,7 +213,7 @@ Bridge homematic:bridge:occu  [ gatewayAddress="..."]
 
 ## Thing Configuration
 
-Things are all discovered automatically, you can handle them in PaperUI.
+Things are all discovered automatically.
 
 If you really like to manually configure a thing:
 
@@ -231,13 +228,6 @@ The first parameter after Thing is the device type, the second the serial number
 If you are using Homegear, you have to add the prefix `HG-` for each type.
 The `HG-` prefix is only needed for Things, not for Items or channel configs.
 This is necessary, because the Homegear devices supports more datapoints than Homematic devices.
-
-```java
-  Thing HG-HM-LC-Dim1T-Pl-2     JEQ0999999
-```
-
-As additional parameters you can define a name and a location for each thing.
-The `Name` will be used to identify the thing in the Paper UI lists, the `Location` will be used in the Control section of PaperUI to sort the things.
 
 ```java
   Thing HG-HM-LC-Dim1T-Pl-2     JEQ0999999  "Name"  @  "Location"
@@ -303,10 +293,12 @@ Dimmer  Light "Light [%d %%]"           { channel="homematic:HM-LC-Dim1T-Pl-2:cc
 
 The GATEWAY-EXTRAS is a virtual device which contains a switch to reload all values from all devices and also a switch to put the gateway in the install mode to add new devices.
 If the gateway supports variables and scripts, you can handle them with this device too.
-The type is generated: `GATEWAY-EXTRAS-[BRIDGE_ID]`.
 
-**Example:** bridgeId=ccu, type=GATEWAY-EXTRAS-CCU
-Address: fixed GWE00000000
+The type is generated: `GATEWAY-EXTRAS-[BRIDGE_ID]`.
+Example: bridgeId=**ccu** -> type=GATEWAY-EXTRAS-**CCU**
+
+The address of the virtual device must be the default value `GWE00000000`.
+Usage of a custom ID is not supported.
 
 ### RELOAD_ALL_FROM_GATEWAY
 
@@ -358,16 +350,17 @@ A virtual datapoint (String) to simulate a key press, available on all channels 
 
 Available values:
 
-- `SHORT_PRESS`: triggered on a short key press
-- `LONG_PRESS`: triggered on a key press longer than `LONG_PRESS_TIME` (variable configuration per key, default is 0.4 s)
-- `DOUBLE_PRESS`: triggered on a short key press but only if the latest `SHORT_PRESS` or `DOUBLE_PRESS` event is not older than 2.0 s (not related to `DBL_PRESS_TIME` configuration, which is more like a key lock because if it is other than `0.0` single presses are not notified anymore)
+- `SHORT_PRESSED`: triggered on a short key press
+- `LONG_PRESSED`: triggered on a key press longer than `LONG_PRESS_TIME` (variable configuration per key, default is 0.4 s)
+- `LONG_REPEATED`: triggered on long key press repetition, that is, in `LONG_PRESS_TIME` intervals as long as key is held
+- `LONG_RELEASED`: triggered when a key is released after being long pressed
 
 **Example:** to capture a short key press on the 19 button remote control in a rule
 
 ```javascript
 rule "example trigger rule"
 when
-    Channel 'homematic:HM-RC-19-B:ccu:KEQ0012345:1#BUTTON' triggered SHORT_PRESS
+    Channel 'homematic:HM-RC-19-B:ccu:KEQ0012345:1#BUTTON' triggered SHORT_PRESSED
 then
     ...
 end
@@ -675,6 +668,27 @@ Var_1.sendCommand(RefreshType.REFRESH)
 
 **Note:** adding new and removing deleted variables from the GATEWAY-EXTRAS thing is currently not supported.
 You have to delete the thing, start a scan and add it again.
+
+**`openhab.log` contains an exception with message: `Buffering capacity 2097152 exceeded` resp. discovery detects no devices**
+
+In case of problems in the discovery or if above mentioned error message appears in `openhab.log`, the size for the transmission buffer for the communication with the gateway is too small.
+The problem can be solved by increasing the `bufferSize` value in the bridge configuration.
+
+**Rollershutters are inverted**
+
+openHAB and the CCU are using different values for the same state of a rollershutter.
+Examples: HmIP-BROLL, HmIP-FROLL, HmIP-BBL, HmIP-FBL and HmIP-DRBLI4
+|         | Open | Closed |
+|---------|------|--------|
+| openHAB | 0%   | 100%   |
+| CCU     | 100% | 0%     |
+
+** The binding does not receive any status changes from the Homematic gateway**
+
+First of all, make sure that none of the ports needed to receive status changes from the gateway are blocked by firewall settings.
+
+If the computer running openHAB has more than one IP address, a wrong one may have been set as receiver for status changes.
+In this case change the setting for `callbackHost` to the correct address.
 
 ### Debugging and Tracing
 

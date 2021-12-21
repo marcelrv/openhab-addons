@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -16,23 +16,24 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.openhab.binding.hdpowerview.internal.api.ActuatorClass.*;
 import static org.openhab.binding.hdpowerview.internal.api.CoordinateSystem.*;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jetty.client.HttpClient;
 import org.junit.jupiter.api.Test;
 import org.openhab.binding.hdpowerview.internal.HDPowerViewWebTargets;
 import org.openhab.binding.hdpowerview.internal.HubMaintenanceException;
+import org.openhab.binding.hdpowerview.internal.HubProcessingException;
 import org.openhab.binding.hdpowerview.internal.api.CoordinateSystem;
 import org.openhab.binding.hdpowerview.internal.api.ShadePosition;
+import org.openhab.binding.hdpowerview.internal.api.responses.SceneCollections;
+import org.openhab.binding.hdpowerview.internal.api.responses.SceneCollections.SceneCollection;
 import org.openhab.binding.hdpowerview.internal.api.responses.Scenes;
 import org.openhab.binding.hdpowerview.internal.api.responses.Scenes.Scene;
 import org.openhab.binding.hdpowerview.internal.api.responses.Shade;
@@ -49,6 +50,7 @@ import com.google.gson.JsonParseException;
  * Unit tests for HD PowerView binding
  *
  * @author Andrew Fiddian-Green - Initial contribution
+ * @author Jacob Laursen - Add support for scene groups
  */
 @NonNullByDefault
 public class HDPowerViewJUnitTests {
@@ -60,14 +62,9 @@ public class HDPowerViewJUnitTests {
      * load a test JSON string from a file
      */
     private String loadJson(String fileName) {
-        try (FileReader file = new FileReader(String.format("src/test/resources/%s.json", fileName));
-                BufferedReader reader = new BufferedReader(file)) {
-            StringBuilder builder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line).append("\n");
-            }
-            return builder.toString();
+        try {
+            return Files.readAllLines(Paths.get(String.format("src/test/resources/%s.json", fileName))).stream()
+                    .collect(Collectors.joining());
         } catch (IOException e) {
             fail(e.getMessage());
         }
@@ -76,7 +73,7 @@ public class HDPowerViewJUnitTests {
 
     /**
      * Run a series of ONLINE tests on the communication with a hub
-     * 
+     *
      * @param hubIPAddress must be a valid hub IP address to run the
      *            tests on; or an INVALID IP address to
      *            suppress the tests
@@ -99,10 +96,18 @@ public class HDPowerViewJUnitTests {
         boolean allowShadeMovementCommands = false;
 
         if (VALID_IP_V4_ADDRESS.matcher(hubIPAddress).matches()) {
-            // initialize stuff
-            Client client = ClientBuilder.newClient();
+            // ==== initialize stuff ====
+            HttpClient client = new HttpClient();
             assertNotNull(client);
-            // client.register(new Logger());
+
+            // ==== start the client ====
+            try {
+                client.start();
+                assertTrue(client.isStarted());
+            } catch (Exception e) {
+                fail(e.getMessage());
+            }
+
             HDPowerViewWebTargets webTargets = new HDPowerViewWebTargets(client, hubIPAddress);
             assertNotNull(webTargets);
 
@@ -162,7 +167,7 @@ public class HDPowerViewJUnitTests {
                 @Nullable
                 List<ShadeData> shadesData = shadesX.shadeData;
                 assertNotNull(shadesData);
-                assertTrue(shadesData.size() > 0);
+                assertTrue(!shadesData.isEmpty());
                 @Nullable
                 ShadeData shadeData;
                 shadeData = shadesData.get(0);
@@ -180,7 +185,7 @@ public class HDPowerViewJUnitTests {
                     String shadeName = shadexData.getName();
                     assertNotNull(shadeName);
                 }
-            } catch (JsonParseException | ProcessingException | HubMaintenanceException e) {
+            } catch (JsonParseException | HubProcessingException | HubMaintenanceException e) {
                 fail(e.getMessage());
             }
 
@@ -192,7 +197,7 @@ public class HDPowerViewJUnitTests {
                 @Nullable
                 List<Scene> scenesData = scenes.sceneData;
                 assertNotNull(scenesData);
-                assertTrue(scenesData.size() > 0);
+                assertTrue(!scenesData.isEmpty());
                 @Nullable
                 Scene sceneZero = scenesData.get(0);
                 assertNotNull(sceneZero);
@@ -203,7 +208,7 @@ public class HDPowerViewJUnitTests {
                     String sceneName = scene.getName();
                     assertNotNull(sceneName);
                 }
-            } catch (JsonParseException | ProcessingException | HubMaintenanceException e) {
+            } catch (JsonParseException | HubProcessingException | HubMaintenanceException e) {
                 fail(e.getMessage());
             }
 
@@ -212,9 +217,9 @@ public class HDPowerViewJUnitTests {
             Shade shade = null;
             try {
                 assertNotEquals(0, shadeId);
-                shade = webTargets.refreshShade(shadeId);
+                shade = webTargets.refreshShadePosition(shadeId);
                 assertNotNull(shade);
-            } catch (ProcessingException | HubMaintenanceException e) {
+            } catch (HubProcessingException | HubMaintenanceException e) {
                 fail(e.getMessage());
             }
 
@@ -245,7 +250,7 @@ public class HDPowerViewJUnitTests {
                 if (allowShadeMovementCommands) {
                     webTargets.moveShade(shadeId, newPos);
                 }
-            } catch (ProcessingException | HubMaintenanceException e) {
+            } catch (HubProcessingException | HubMaintenanceException e) {
                 fail(e.getMessage());
             }
 
@@ -254,7 +259,26 @@ public class HDPowerViewJUnitTests {
                 try {
                     assertNotNull(sceneId);
                     webTargets.activateScene(sceneId);
-                } catch (ProcessingException | HubMaintenanceException e) {
+                } catch (HubProcessingException | HubMaintenanceException e) {
+                    fail(e.getMessage());
+                }
+            }
+
+            // ==== test stop command ====
+            if (allowShadeMovementCommands) {
+                try {
+                    assertNotNull(sceneId);
+                    webTargets.stopShade(shadeId);
+                } catch (HubProcessingException | HubMaintenanceException e) {
+                    fail(e.getMessage());
+                }
+            }
+
+            // ==== stop the client ====
+            if (client.isRunning()) {
+                try {
+                    client.stop();
+                } catch (Exception e) {
                     fail(e.getMessage());
                 }
             }
@@ -262,76 +286,107 @@ public class HDPowerViewJUnitTests {
     }
 
     /**
-     * Run a series of OFFLINE tests on the JSON parsing machinery
+     * Test generic JSON shades response
      */
     @Test
-    public void testOfflineJsonParsing() {
+    public void shadeResponseIsParsedCorrectly() throws JsonParseException {
         final Gson gson = new Gson();
-
         @Nullable
         Shades shades;
-        // test generic JSON shades response
-        try {
-            @Nullable
-            String json = loadJson("shades");
-            assertNotNull(json);
-            assertNotEquals("", json);
-            shades = gson.fromJson(json, Shades.class);
-            assertNotNull(shades);
-        } catch (JsonParseException e) {
-            fail(e.getMessage());
-        }
+        String json = loadJson("shades");
+        assertNotEquals("", json);
+        shades = gson.fromJson(json, Shades.class);
+        assertNotNull(shades);
+    }
 
-        // test generic JSON scenes response
-        try {
-            @Nullable
-            String json = loadJson("scenes");
-            assertNotNull(json);
-            assertNotEquals("", json);
-            @Nullable
-            Scenes scenes = gson.fromJson(json, Scenes.class);
-            assertNotNull(scenes);
-        } catch (JsonParseException e) {
-            fail(e.getMessage());
-        }
+    /**
+     * Test generic JSON scene response
+     */
+    @Test
+    public void sceneResponseIsParsedCorrectly() throws JsonParseException {
+        final Gson gson = new Gson();
+        String json = loadJson("scenes");
+        assertNotEquals("", json);
 
-        // test the JSON parsing for a duette top down bottom up shade
-        try {
-            @Nullable
-            ShadeData shadeData = null;
-            String json = loadJson("duette");
-            assertNotNull(json);
-            assertNotEquals("", json);
+        @Nullable
+        Scenes scenes = gson.fromJson(json, Scenes.class);
+        assertNotNull(scenes);
 
-            shades = gson.fromJson(json, Shades.class);
-            assertNotNull(shades);
-            @Nullable
-            List<ShadeData> shadesData = shades.shadeData;
-            assertNotNull(shadesData);
+        @Nullable
+        List<Scene> sceneData = scenes.sceneData;
+        assertNotNull(sceneData);
 
-            assertEquals(1, shadesData.size());
-            shadeData = shadesData.get(0);
-            assertNotNull(shadeData);
+        assertEquals(4, sceneData.size());
+        @Nullable
+        Scene scene = sceneData.get(0);
+        assertEquals("Door Open", scene.getName());
+        assertEquals(18097, scene.id);
+    }
 
-            assertEquals("Gardin 1", shadeData.getName());
-            assertEquals(63778, shadeData.id);
+    /**
+     * Test generic JSON scene collection response
+     */
+    @Test
+    public void sceneCollectionResponseIsParsedCorrectly() throws JsonParseException {
+        final Gson gson = new Gson();
+        String json = loadJson("sceneCollections");
+        assertNotEquals("", json);
 
-            ShadePosition shadePos = shadeData.positions;
-            assertNotNull(shadePos);
-            assertEquals(ZERO_IS_CLOSED, shadePos.getCoordinateSystem(PRIMARY_ACTUATOR));
+        @Nullable
+        SceneCollections sceneCollections = gson.fromJson(json, SceneCollections.class);
+        assertNotNull(sceneCollections);
+        @Nullable
+        List<SceneCollection> sceneCollectionData = sceneCollections.sceneCollectionData;
+        assertNotNull(sceneCollectionData);
 
-            State pos = shadePos.getState(PRIMARY_ACTUATOR, ZERO_IS_CLOSED);
-            assertEquals(PercentType.class, pos.getClass());
-            assertEquals(59, ((PercentType) pos).intValue());
+        assertEquals(1, sceneCollectionData.size());
+        @Nullable
+        SceneCollection sceneCollection = sceneCollectionData.get(0);
+        assertEquals("Børn op", sceneCollection.getName());
+        assertEquals(27119, sceneCollection.id);
+    }
 
-            pos = shadePos.getState(SECONDARY_ACTUATOR, ZERO_IS_OPEN);
-            assertEquals(PercentType.class, pos.getClass());
-            assertEquals(65, ((PercentType) pos).intValue());
+    /**
+     * Test the JSON parsing for a duette top down bottom up shade
+     */
+    @Test
+    public void duetteTopDownBottomUpShadeIsParsedCorrectly() throws JsonParseException {
+        final Gson gson = new Gson();
+        String json = loadJson("duette");
+        assertNotEquals("", json);
 
-            pos = shadePos.getState(PRIMARY_ACTUATOR, VANE_COORDS);
-            assertEquals(UnDefType.class, pos.getClass());
-        } catch (JsonParseException e) {
-            fail(e.getMessage());
-        }
+        @Nullable
+        Shades shades = gson.fromJson(json, Shades.class);
+        assertNotNull(shades);
+        @Nullable
+        List<ShadeData> shadesData = shades.shadeData;
+        assertNotNull(shadesData);
+
+        assertEquals(1, shadesData.size());
+        @Nullable
+        ShadeData shadeData = shadesData.get(0);
+        assertNotNull(shadeData);
+
+        assertEquals("Gardin 1", shadeData.getName());
+        assertEquals(63778, shadeData.id);
+
+        ShadePosition shadePos = shadeData.positions;
+        assertNotNull(shadePos);
+        assertEquals(ZERO_IS_CLOSED, shadePos.getCoordinateSystem(PRIMARY_ACTUATOR));
+
+        State pos = shadePos.getState(PRIMARY_ACTUATOR, ZERO_IS_CLOSED);
+        assertEquals(PercentType.class, pos.getClass());
+        assertEquals(59, ((PercentType) pos).intValue());
+
+        pos = shadePos.getState(SECONDARY_ACTUATOR, ZERO_IS_OPEN);
+        assertEquals(PercentType.class, pos.getClass());
+        assertEquals(35, ((PercentType) pos).intValue());
+
+        pos = shadePos.getState(PRIMARY_ACTUATOR, VANE_COORDS);
+        assertEquals(UnDefType.class, pos.getClass());
+
+        assertEquals(3, shadeData.batteryStatus);
+
+        assertEquals(4, shadeData.signalStrength);
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -15,6 +15,7 @@ package org.openhab.binding.digitalstrom.internal.handler;
 import static org.openhab.binding.digitalstrom.internal.DigitalSTROMBindingConstants.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.digitalstrom.internal.DigitalSTROMBindingConstants;
 import org.openhab.binding.digitalstrom.internal.lib.GeneralLibConstance;
 import org.openhab.binding.digitalstrom.internal.lib.config.Config;
@@ -32,6 +32,7 @@ import org.openhab.binding.digitalstrom.internal.lib.structure.devices.Device;
 import org.openhab.binding.digitalstrom.internal.lib.structure.devices.GeneralDeviceInformation;
 import org.openhab.binding.digitalstrom.internal.lib.structure.devices.deviceparameters.DeviceSceneSpec;
 import org.openhab.binding.digitalstrom.internal.lib.structure.devices.deviceparameters.DeviceStateUpdate;
+import org.openhab.binding.digitalstrom.internal.lib.structure.devices.deviceparameters.constants.ApplicationGroup;
 import org.openhab.binding.digitalstrom.internal.lib.structure.devices.deviceparameters.constants.ChangeableDeviceConfigEnum;
 import org.openhab.binding.digitalstrom.internal.lib.structure.devices.deviceparameters.constants.DeviceBinarayInputEnum;
 import org.openhab.binding.digitalstrom.internal.lib.structure.devices.deviceparameters.constants.OutputModeEnum;
@@ -108,8 +109,8 @@ public class DeviceHandler extends BaseThingHandler implements DeviceStatusListe
     @Override
     public void initialize() {
         logger.debug("Initializing DeviceHandler.");
-        if (StringUtils.isNotBlank((String) getConfig().get(DigitalSTROMBindingConstants.DEVICE_DSID))) {
-            dSID = getConfig().get(DigitalSTROMBindingConstants.DEVICE_DSID).toString();
+        dSID = (String) getConfig().get(DigitalSTROMBindingConstants.DEVICE_DSID);
+        if (dSID != null && !dSID.isBlank()) {
             final Bridge bridge = getBridge();
             if (bridge != null) {
                 bridgeStatusChanged(bridge.getStatusInfo());
@@ -411,7 +412,7 @@ public class DeviceHandler extends BaseThingHandler implements DeviceStatusListe
         if (value <= 0 || max <= 0) {
             return 0;
         }
-        int percentValue = new BigDecimal(value * ((float) 100 / max)).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+        int percentValue = new BigDecimal(value * ((float) 100 / max)).setScale(0, RoundingMode.HALF_UP).intValue();
         return percentValue < 0 ? 0 : percentValue > 100 ? 100 : percentValue;
     }
 
@@ -457,8 +458,11 @@ public class DeviceHandler extends BaseThingHandler implements DeviceStatusListe
                     checkOutputChannel();
                 } else if (this.device.isBlind()) {
                     // load channel for set the angle of jalousie devices
-                    String channelTypeID = DsChannelTypeProvider.getOutputChannelTypeID(
-                            ((Device) device).getFunctionalColorGroup(), ((Device) device).getOutputMode());
+                    ApplicationGroup.Color color = ((Device) device).getFunctionalColorGroup() != null
+                            ? ((Device) device).getFunctionalColorGroup().getColor()
+                            : null;
+                    String channelTypeID = DsChannelTypeProvider.getOutputChannelTypeID(color,
+                            ((Device) device).getOutputMode(), ((Device) device).getOutputChannels());
                     loadOutputChannel(new ChannelTypeUID(BINDING_ID, channelTypeID),
                             DsChannelTypeProvider.getItemType(channelTypeID));
                 }
@@ -712,10 +716,14 @@ public class DeviceHandler extends BaseThingHandler implements DeviceStatusListe
         if (!device.isDeviceWithOutput()) {
             loadOutputChannel(null, null);
         }
-        String channelTypeID = DsChannelTypeProvider.getOutputChannelTypeID(device.getFunctionalColorGroup(),
-                device.getOutputMode());
+        ApplicationGroup.Color color = device.getFunctionalColorGroup() != null
+                ? device.getFunctionalColorGroup().getColor()
+                : null;
+        String channelTypeID = DsChannelTypeProvider.getOutputChannelTypeID(color, device.getOutputMode(),
+                device.getOutputChannels());
         logger.debug("load channel: typeID={}, itemType={}",
-                DsChannelTypeProvider.getOutputChannelTypeID(device.getFunctionalColorGroup(), device.getOutputMode()),
+                DsChannelTypeProvider.getOutputChannelTypeID(device.getFunctionalColorGroup().getColor(),
+                        device.getOutputMode(), device.getOutputChannels()),
                 DsChannelTypeProvider.getItemType(channelTypeID));
         if (channelTypeID != null && (currentChannel == null || !currentChannel.equals(channelTypeID))) {
             loadOutputChannel(new ChannelTypeUID(BINDING_ID, channelTypeID),

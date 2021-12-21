@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,6 +12,8 @@
  */
 package org.openhab.binding.powermax.internal.message;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.powermax.internal.state.PowermaxState;
 import org.openhab.core.util.HexUtils;
 import org.slf4j.Logger;
@@ -22,14 +24,16 @@ import org.slf4j.LoggerFactory;
  *
  * @author Laurent Garnier - Initial contribution
  */
+@NonNullByDefault
 public class PowermaxBaseMessage {
 
     private final Logger logger = LoggerFactory.getLogger(PowermaxBaseMessage.class);
 
-    private byte[] rawData;
+    private final byte[] rawData;
     private int code;
-    private PowermaxSendType sendType;
-    private PowermaxReceiveType receiveType;
+    private @Nullable PowermaxSendType sendType;
+    private @Nullable PowermaxReceiveType receiveType;
+    private Object messageType;
 
     /**
      * Constructor.
@@ -37,8 +41,9 @@ public class PowermaxBaseMessage {
      * @param message the message as a buffer of bytes
      */
     public PowermaxBaseMessage(byte[] message) {
-        this.sendType = null;
-        decodeMessage(message);
+        this.rawData = message;
+        this.messageType = "UNKNOWN";
+        decodeMessage();
     }
 
     /**
@@ -56,37 +61,41 @@ public class PowermaxBaseMessage {
      * @param sendType the type of a message to be sent
      * @param param the dynamic part of a message to be sent; null if no dynamic part
      */
-    public PowermaxBaseMessage(PowermaxSendType sendType, byte[] param) {
+    public PowermaxBaseMessage(PowermaxSendType sendType, byte @Nullable [] param) {
         this.sendType = sendType;
-        byte[] message = new byte[sendType.getMessage().length + 3];
+        this.messageType = "UNKNOWN";
+        this.rawData = new byte[sendType.getMessage().length + 3];
         int index = 0;
-        message[index++] = 0x0D;
+        rawData[index++] = 0x0D;
         for (int i = 0; i < sendType.getMessage().length; i++) {
-            if ((param != null) && (sendType.getParamPosition() != null) && (i >= sendType.getParamPosition())
-                    && (i < (sendType.getParamPosition() + param.length))) {
-                message[index++] = param[i - sendType.getParamPosition()];
+            Integer paramPosition = sendType.getParamPosition();
+            if ((param != null) && (paramPosition != null) && (i >= paramPosition)
+                    && (i < (paramPosition + param.length))) {
+                rawData[index++] = param[i - paramPosition];
             } else {
-                message[index++] = sendType.getMessage()[i];
+                rawData[index++] = sendType.getMessage()[i];
             }
         }
-        message[index++] = 0x00;
-        message[index++] = 0x0A;
-        decodeMessage(message);
+        rawData[index++] = 0x00;
+        rawData[index++] = 0x0A;
+        decodeMessage();
     }
 
     /**
      * Extract information from the buffer of bytes and set class attributes
-     *
-     * @param data the message as a buffer of bytes
      */
-    private void decodeMessage(byte[] data) {
-        rawData = data;
+    private void decodeMessage() {
         code = rawData[1] & 0x000000FF;
+        PowermaxReceiveType localReceiveType;
         try {
-            receiveType = PowermaxReceiveType.fromCode((byte) code);
+            localReceiveType = PowermaxReceiveType.fromCode((byte) code);
         } catch (IllegalArgumentException e) {
-            receiveType = null;
+            localReceiveType = null;
         }
+        receiveType = localReceiveType;
+
+        PowermaxSendType localSendType = sendType;
+        messageType = localSendType != null ? localSendType : localReceiveType != null ? localReceiveType : "UNKNOWN";
     }
 
     /**
@@ -94,17 +103,26 @@ public class PowermaxBaseMessage {
      *
      * @return a new state containing all changes driven by the message
      */
-    public PowermaxState handleMessage(PowermaxCommManager commManager) {
+    public final @Nullable PowermaxState handleMessage(@Nullable PowermaxCommManager commManager) {
         // Send an ACK if needed
         if (isAckRequired() && commManager != null) {
             commManager.sendAck(this, (byte) 0x02);
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("{}message handled by class {}: {}", (receiveType == null) ? "Unsupported " : "",
-                    this.getClass().getSimpleName(), this);
+            logger.debug("{}message will be handled by class {}:", (receiveType == null) ? "Unsupported " : "",
+                    this.getClass().getSimpleName());
+
+            debug("Raw data", rawData);
+            debug("Message type", code, messageType.toString());
         }
 
+        PowermaxState newState = handleMessageInternal(commManager);
+
+        return newState;
+    }
+
+    protected @Nullable PowermaxState handleMessageInternal(@Nullable PowermaxCommManager commManager) {
         return null;
     }
 
@@ -125,18 +143,18 @@ public class PowermaxBaseMessage {
     /**
      * @return the type of the message to be sent
      */
-    public PowermaxSendType getSendType() {
+    public @Nullable PowermaxSendType getSendType() {
         return sendType;
     }
 
-    public void setSendType(PowermaxSendType sendType) {
+    public void setSendType(@Nullable PowermaxSendType sendType) {
         this.sendType = sendType;
     }
 
     /**
      * @return the type of the received message
      */
-    public PowermaxReceiveType getReceiveType() {
+    public @Nullable PowermaxReceiveType getReceiveType() {
         return receiveType;
     }
 
@@ -144,20 +162,46 @@ public class PowermaxBaseMessage {
      * @return true if the received message requires the sending of an ACK
      */
     public boolean isAckRequired() {
-        return receiveType == null || receiveType.isAckRequired();
+        PowermaxReceiveType localReceiveType = receiveType;
+        return localReceiveType == null || localReceiveType.isAckRequired();
     }
 
-    @Override
-    public String toString() {
-        String str = "\n - Raw data = " + HexUtils.bytesToHex(rawData);
-        str += "\n - type = " + String.format("%02X", code);
-        if (sendType != null) {
-            str += " ( " + sendType.toString() + " )";
-        } else if (receiveType != null) {
-            str += " ( " + receiveType.toString() + " )";
+    // Debugging helpers
+
+    public void debug(String name, String info, @Nullable String decoded) {
+        if (!logger.isDebugEnabled()) {
+            return;
         }
 
-        return str;
+        String decodedStr = "";
+
+        if (decoded != null && !decoded.isBlank()) {
+            decodedStr = " - " + decoded;
+        }
+
+        logger.debug("| {} = {}{}", name, info, decodedStr);
+    }
+
+    public void debug(String name, String info) {
+        debug(name, info, null);
+    }
+
+    public void debug(String name, byte[] data, @Nullable String decoded) {
+        String hex = "0x" + HexUtils.bytesToHex(data);
+        debug(name, hex, decoded);
+    }
+
+    public void debug(String name, byte[] data) {
+        debug(name, data, null);
+    }
+
+    public void debug(String name, int data, @Nullable String decoded) {
+        String hex = String.format("0x%02X", data);
+        debug(name, hex, decoded);
+    }
+
+    public void debug(String name, int data) {
+        debug(name, data, null);
     }
 
     /**

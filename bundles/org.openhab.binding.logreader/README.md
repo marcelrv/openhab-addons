@@ -27,7 +27,8 @@ The `reader` Thing has the following configuration parameters:
 | `customPatterns`              | String  |   no     |                                  | Search patterns separated by \| character for custom events.                            |
 | `customBlacklistingPatterns`  | String  |   no     |                                  | Search patterns for blacklisting unwanted custom events separated by \| character.      |
 
-Search patterns follows Java regular expression syntax. See https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html.
+Search patterns follows [Java regular expression syntax](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/regex/Pattern.html).
+Be aware that search patterns are case sensitive.
 
 ## Channels
 
@@ -99,15 +100,15 @@ rule "LogReader"
     end
 ```
 
-Use the rules with your Telegram Bot (need openHAB Telegram Action installed and configured)
+Use the rules with your Telegram Bot (need openHAB Telegram Binding installed and configured)
 
 ```xtend
 rule "LogReader"
     when
         Channel 'logreader:reader:openhablog:newErrorEvent' triggered
     then
-        // do something
-	sendTelegram("bot3", "*ERROR* LogReader Event!\n%s Errors are in the log! Here is the last row of it:\n`%s`", logreaderErrors.state.toString, logreaderLastError.state.toString)
+        val telegramAction = getActions("telegram","telegram:telegramBot:myBot")
+        telegramAction.sendTelegram("*ERROR* LogReader Event!\n%s Errors are in the log! Here is the last row of it:\n`%s`", logreaderErrors.state.toString, logreaderLastError.state.toString)
     end
 ```
 

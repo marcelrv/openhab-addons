@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,6 +12,8 @@
  */
 package org.openhab.binding.powermax.internal.message;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.powermax.internal.state.PowermaxState;
 
 /**
@@ -19,6 +21,7 @@ import org.openhab.binding.powermax.internal.state.PowermaxState;
  *
  * @author Laurent Garnier - Initial contribution
  */
+@NonNullByDefault
 public class PowermaxPowerMasterMessage extends PowermaxBaseMessage {
 
     /**
@@ -32,9 +35,7 @@ public class PowermaxPowerMasterMessage extends PowermaxBaseMessage {
     }
 
     @Override
-    public PowermaxState handleMessage(PowermaxCommManager commManager) {
-        super.handleMessage(commManager);
-
+    protected @Nullable PowermaxState handleMessageInternal(@Nullable PowermaxCommManager commManager) {
         if (commManager == null) {
             return null;
         }
@@ -42,6 +43,11 @@ public class PowermaxPowerMasterMessage extends PowermaxBaseMessage {
         byte[] message = getRawData();
         byte msgType = message[2];
         byte subType = message[3];
+        byte msgLen = message[4];
+
+        debug("Type", msgType);
+        debug("Subtype", subType);
+        debug("Message length", msgLen);
 
         if ((msgType == 0x03) && (subType == 0x39)) {
             commManager.sendMessage(PowermaxSendType.POWERMASTER_ZONE_STAT1);
@@ -49,21 +55,5 @@ public class PowermaxPowerMasterMessage extends PowermaxBaseMessage {
         }
 
         return null;
-    }
-
-    @Override
-    public String toString() {
-        String str = super.toString();
-
-        byte[] message = getRawData();
-        byte msgType = message[2];
-        byte subType = message[3];
-        byte msgLen = message[4];
-
-        str += "\n - type = " + String.format("%02X", msgType);
-        str += "\n - subtype = " + String.format("%02X", subType);
-        str += "\n - msgLen = " + String.format("%02X", msgLen);
-
-        return str;
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -32,18 +32,17 @@ import java.util.concurrent.TimeUnit;
 import javax.measure.Unit;
 import javax.measure.quantity.Temperature;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.iaqualink.internal.IAqualinkBindingConstants;
 import org.openhab.binding.iaqualink.internal.api.IAqualinkClient;
 import org.openhab.binding.iaqualink.internal.api.IAqualinkClient.NotAuthorizedException;
-import org.openhab.binding.iaqualink.internal.api.model.AccountInfo;
-import org.openhab.binding.iaqualink.internal.api.model.Auxiliary;
-import org.openhab.binding.iaqualink.internal.api.model.Device;
-import org.openhab.binding.iaqualink.internal.api.model.Home;
-import org.openhab.binding.iaqualink.internal.api.model.OneTouch;
+import org.openhab.binding.iaqualink.internal.api.dto.AccountInfo;
+import org.openhab.binding.iaqualink.internal.api.dto.Auxiliary;
+import org.openhab.binding.iaqualink.internal.api.dto.Device;
+import org.openhab.binding.iaqualink.internal.api.dto.Home;
+import org.openhab.binding.iaqualink.internal.api.dto.OneTouch;
 import org.openhab.binding.iaqualink.internal.config.IAqualinkConfiguration;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
@@ -207,7 +206,9 @@ public class IAqualinkHandler extends BaseThingHandler {
                     Optional<Auxiliary> optional = Arrays.stream(auxs).filter(o -> o.getName().equals(channelName))
                             .findFirst();
                     if (optional.isPresent()) {
-                        if (toState(channelName, "Switch", optional.get().getState()) != command) {
+                        OnOffType onOffCommand = (OnOffType) command;
+                        State currentState = toState(channelName, "Switch", optional.get().getState());
+                        if (!currentState.equals(onOffCommand)) {
                             client.auxSetCommand(serialNumber, sessionId, channelName);
                         }
                     }
@@ -226,20 +227,23 @@ public class IAqualinkHandler extends BaseThingHandler {
                     }
                 }
             } else if (command instanceof OnOffType) {
+                OnOffType onOffCommand = (OnOffType) command;
                 // these are toggle commands and require we have the current state to turn on/off
                 if (channelName.startsWith("onetouch_")) {
                     OneTouch[] ota = client.getOneTouch(serialNumber, sessionId);
                     Optional<OneTouch> optional = Arrays.stream(ota).filter(o -> o.getName().equals(channelName))
                             .findFirst();
                     if (optional.isPresent()) {
-                        if (toState(channelName, "Switch", optional.get().getState()) != command) {
+                        State currentState = toState(channelName, "Switch", optional.get().getState());
+                        if (!currentState.equals(onOffCommand)) {
                             logger.debug("Sending command {} to {}", command, channelName);
                             client.oneTouchSetCommand(serialNumber, sessionId, channelName);
                         }
                     }
                 } else if (channelName.endsWith("heater") || channelName.endsWith("pump")) {
                     String value = client.getHome(serialNumber, sessionId).getSerializedMap().get(channelName);
-                    if (toState(channelName, "Switch", value) != command) {
+                    State currentState = toState(channelName, "Switch", value);
+                    if (!currentState.equals(onOffCommand)) {
                         logger.debug("Sending command {} to {}", command, channelName);
                         client.homeScreenSetCommand(serialNumber, sessionId, channelName);
                     }
@@ -268,7 +272,7 @@ public class IAqualinkHandler extends BaseThingHandler {
         String confSerialId = configuration.serialId;
         String confApiKey = configuration.apiKey;
 
-        if (StringUtils.isNotBlank(confApiKey)) {
+        if (confApiKey != null && !confApiKey.isBlank()) {
             this.apiKey = confApiKey;
         } else {
             this.apiKey = DEFAULT_API_KEY;
@@ -291,7 +295,7 @@ public class IAqualinkHandler extends BaseThingHandler {
                 return;
             }
 
-            if (StringUtils.isNotBlank(confSerialId)) {
+            if (confSerialId != null && !confSerialId.isBlank()) {
                 serialNumber = confSerialId.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
                 if (!Arrays.stream(devices).anyMatch(device -> device.getSerialNumber().equals(serialNumber))) {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
@@ -438,8 +442,7 @@ public class IAqualinkHandler extends BaseThingHandler {
      */
     private State toState(String name, @Nullable String type, @Nullable String value) {
         try {
-            // @nullable checker does not recognize isBlank as checking null here, so must use == null to make happy
-            if (value == null || StringUtils.isBlank(value)) {
+            if (value == null || value.isBlank()) {
                 return UnDefType.UNDEF;
             }
 
@@ -459,7 +462,7 @@ public class IAqualinkHandler extends BaseThingHandler {
                 default:
                     return StringType.valueOf(value);
             }
-        } catch (NumberFormatException e) {
+        } catch (IllegalArgumentException e) {
             return UnDefType.UNDEF;
         }
     }

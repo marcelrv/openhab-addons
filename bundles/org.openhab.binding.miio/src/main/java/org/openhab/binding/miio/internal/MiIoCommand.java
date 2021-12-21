@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -30,6 +30,8 @@ public enum MiIoCommand {
     // Basic device commands
     GET_PROPERTY("get_prop"),
     GET_PROPERTIES("get_properties"),
+    GET_DEVICE_PROPERTY_EXP("get_device_prop_exp"),
+    GET_DEVICE_PROPERTY("get_device_prop"),
     GET_VALUE("get_value"),
     SET_PROPERTIES("set_properties"),
     SET_MODE_BASIC("set_mode"),
@@ -85,6 +87,15 @@ public enum MiIoCommand {
     REMOTE_START("app_rc_start"),
     REMOTE_END("app_rc_end"),
     REMOTE_MOVE("app_rc_move"),
+
+    GET_MAP_STATUS("get_map_status"),
+    GET_SEGMENT_STATUS("get_segment_status"),
+    GET_LED_STATUS("get_led_status"),
+    GET_CARPET_MODE("get_carpet_mode"),
+    GET_FW_FEATURES("get_fw_features"),
+    GET_CUSTOMIZED_CLEAN_MODE("get_customize_clean_mode"),
+    GET_MULTI_MAP_LIST("get_multi_maps_list"),
+    GET_ROOM_MAPPING("get_room_mapping"),
 
     UNKNOWN("");
 

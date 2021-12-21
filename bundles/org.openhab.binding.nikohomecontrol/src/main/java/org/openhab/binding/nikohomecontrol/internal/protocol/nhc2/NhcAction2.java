@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2020 Contributors to the openHAB project
+ * Copyright (c) 2010-2021 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -11,6 +11,8 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.nikohomecontrol.internal.protocol.nhc2;
+
+import static org.openhab.binding.nikohomecontrol.internal.protocol.NikoHomeControlConstants.*;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -115,9 +117,16 @@ public class NhcAction2 extends NhcAction {
      */
     @Override
     public void execute(String command) {
-        logger.debug("Niko Home Control: execute action {} of type {} for {}", command, type, id);
+        logger.debug("execute action {} of type {} for {}", command, type, id);
 
-        nhcComm.executeAction(id, command);
+        String cmd;
+        if ("flag".equals(model)) {
+            cmd = NHCON.equals(command) ? NHCTRUE : NHCFALSE;
+        } else {
+            cmd = command;
+        }
+
+        nhcComm.executeAction(id, cmd);
     }
 
     /**
