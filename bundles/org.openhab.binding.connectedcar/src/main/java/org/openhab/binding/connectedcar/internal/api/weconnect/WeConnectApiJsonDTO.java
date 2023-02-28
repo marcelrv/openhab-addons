@@ -13,8 +13,7 @@
 package org.openhab.binding.connectedcar.internal.api.weconnect;
 
 import static org.openhab.binding.connectedcar.internal.BindingConstants.API_REQUEST_TIMEOUT_SEC;
-import static org.openhab.binding.connectedcar.internal.api.ApiDataTypesDTO.API_REQUEST_QUEUED;
-import static org.openhab.binding.connectedcar.internal.api.ApiDataTypesDTO.API_REQUEST_STARTED;
+import static org.openhab.binding.connectedcar.internal.api.ApiDataTypesDTO.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,7 +26,7 @@ import com.google.gson.annotations.SerializedName;
  * @author Markus Michels - Initial contribution
  */
 public class WeConnectApiJsonDTO {
-    public static final String WCAPI_BASE_URL = "https://mobileapi.apps.emea.vwapps.io";
+    public static final String WCAPI_BASE_URL = "https://emea.bff.cariad.digital/vehicle/v1";
 
     public static final String WCSERVICE_STATUS = "status";
     public static final String WCSERVICE_CLIMATISATION = "climatisation";

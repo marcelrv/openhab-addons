@@ -50,10 +50,10 @@ public class BrandWeConnect extends WeConnectApi implements BrandAuthenticator {
         properties.userAgent = "WeConnect/5 CFNetwork/1206 Darwin/20.1.0";
         properties.xcountry = "DE";
         properties.apiDefaultUrl = WCAPI_BASE_URL;
-        properties.loginUrl = "https://login.apps.emea.vwapps.io/authorize?nonce=" + generateNonce()
+        properties.loginUrl = "https://emea.bff.cariad.digital/user-login/v1/authorize?nonce=" + generateNonce()
                 + "&redirect_uri=weconnect://authenticated";
-        properties.tokenUrl = properties.apiDefaultUrl + "/login/v1";
-        properties.tokenRefreshUrl = "https://login.apps.emea.vwapps.io/refresh/v1";
+        properties.tokenUrl = "https://emea.bff.cariad.digital/user-login/login/v1";
+        properties.tokenRefreshUrl = "https://emea.bff.cariad.digital/refresh/v1";
         properties.clientId = "a24fba63-34b3-4d43-b181-942111e6bda8@apps_vw-dilab_com";
         properties.xClientId = "1e63bd93-ce66-4aa3-b373-0ec56247e1d7";
         properties.authScope = "openid cars vin profile";
@@ -76,7 +76,7 @@ public class BrandWeConnect extends WeConnectApi implements BrandAuthenticator {
 
     @Override
     public ApiBrandProperties getProperties() {
-        properties.loginUrl = "https://login.apps.emea.vwapps.io/authorize?nonce=" + generateNonce()
+        properties.loginUrl = "https://emea.bff.cariad.digital/user-login/v1/authorize?nonce=" + generateNonce()
                 + "&redirect_uri=weconnect://authenticated";
         return properties;
     }
@@ -99,7 +99,7 @@ public class BrandWeConnect extends WeConnectApi implements BrandAuthenticator {
          *
          */
         logger.debug("{}: Grant API access", config.getLogId());
-        String json = oauth.clearHeader().header(HttpHeader.HOST, "login.apps.emea.vwapps.io").clearData()//
+        String json = oauth.clearHeader().header(HttpHeader.HOST, "emea.bff.cariad.digital").clearData()//
                 .data("state", oauth.state).data("id_token", oauth.idToken)
                 .data("redirect_uri", config.api.redirect_uri).data("region", "emea")
                 .data("access_token", oauth.accessToken).data("authorizationCode", oauth.code) //
