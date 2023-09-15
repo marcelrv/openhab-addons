@@ -18,6 +18,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -44,6 +46,7 @@ import org.openhab.binding.miio.internal.cloud.CloudUtil;
 import org.openhab.binding.miio.internal.cloud.MiCloudException;
 import org.openhab.binding.miio.internal.robot.ConsumablesType;
 import org.openhab.binding.miio.internal.robot.FanModeType;
+import org.openhab.binding.miio.internal.robot.HistoryRecordDTO;
 import org.openhab.binding.miio.internal.robot.RRMapDraw;
 import org.openhab.binding.miio.internal.robot.RRMapDrawOptions;
 import org.openhab.binding.miio.internal.robot.RobotCababilities;
@@ -445,28 +448,86 @@ public class MiIoVacuumHandler extends MiIoAbstractHandler {
         return true;
     }
 
-    private void updateHistoryRecord(JsonArray historyData) {
-        ZonedDateTime startTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(historyData.get(0).getAsLong()),
-                ZoneId.systemDefault());
-        ZonedDateTime endTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(historyData.get(1).getAsLong()),
-                ZoneId.systemDefault());
-        long duration = TimeUnit.SECONDS.toMinutes(historyData.get(2).getAsLong());
-        double area = historyData.get(3).getAsDouble() / 1000000D;
-        int error = historyData.get(4).getAsInt();
-        int finished = historyData.get(5).getAsInt();
+    private void updateHistoryRecordLegacy(JsonArray historyData) {
+        HistoryRecordDTO historyRecord = new HistoryRecordDTO();
+        for (int i = 0; i < historyData.size(); ++i) {
+            try {
+                BigInteger value = historyData.get(i).getAsBigInteger();
+                switch (i) {
+                    case 0:
+                        historyRecord.setBegin(value);
+                        break;
+                    case 1:
+                        historyRecord.setEnd(value);
+                        break;
+                    case 2:
+                        historyRecord.setDuration(value);
+                        break;
+                    case 3:
+                        historyRecord.setArea(value);
+                        break;
+                    case 4:
+                        historyRecord.setError(value);
+                        break;
+                    case 5:
+                        historyRecord.setComplete(value);
+                        break;
+                    case 6:
+                        historyRecord.setStartType(value);
+                        break;
+                    case 7:
+                        historyRecord.setCleanType(value);
+                        break;
+                    case 8:
+                        historyRecord.setFinishReason(value);
+                        break;
+                }
+            } catch (ClassCastException | NumberFormatException | IllegalStateException e) {
+            }
+        }
+        updateHistoryRecord(historyRecord);
+    }
+
+    private void updateHistoryRecord(HistoryRecordDTO historyRecordDTO) {
         JsonObject historyRecord = new JsonObject();
-        historyRecord.addProperty("start", startTime.toString());
-        historyRecord.addProperty("end", endTime.toString());
-        historyRecord.addProperty("duration", duration);
-        historyRecord.addProperty("area", area);
-        historyRecord.addProperty("error", error);
-        historyRecord.addProperty("finished", finished);
-        updateState(CHANNEL_HISTORY_START_TIME, new DateTimeType(startTime));
-        updateState(CHANNEL_HISTORY_END_TIME, new DateTimeType(endTime));
-        updateState(CHANNEL_HISTORY_DURATION, new QuantityType<>(duration, Units.MINUTE));
-        updateState(CHANNEL_HISTORY_AREA, new QuantityType<>(area, SIUnits.SQUARE_METRE));
-        updateState(CHANNEL_HISTORY_ERROR, new DecimalType(error));
-        updateState(CHANNEL_HISTORY_FINISH, new DecimalType(finished));
+        if (historyRecordDTO.getBegin() != null) {
+            ZonedDateTime startTime = ZonedDateTime
+                    .ofInstant(Instant.ofEpochSecond(historyRecordDTO.getBegin().longValue()), ZoneId.systemDefault());
+            historyRecord.addProperty("start", startTime.toString());
+            updateState(CHANNEL_HISTORY_START_TIME, new DateTimeType(startTime));
+        }
+        if (historyRecordDTO.getEnd() != null) {
+            ZonedDateTime endTime = ZonedDateTime
+                    .ofInstant(Instant.ofEpochSecond(historyRecordDTO.getEnd().longValue()), ZoneId.systemDefault());
+            historyRecord.addProperty("end", endTime.toString());
+            updateState(CHANNEL_HISTORY_END_TIME, new DateTimeType(endTime));
+        }
+        if (historyRecordDTO.getDuration() != null) {
+            long duration = TimeUnit.SECONDS.toMinutes(historyRecordDTO.getDuration().longValue());
+            historyRecord.addProperty("duration", duration);
+            updateState(CHANNEL_HISTORY_DURATION, new QuantityType<>(duration, Units.MINUTE));
+        }
+        if (historyRecordDTO.getArea() != null) {
+            BigDecimal area = new BigDecimal(historyRecordDTO.getArea()).divide(BigDecimal.valueOf(1000000));
+            historyRecord.addProperty("area", area);
+            updateState(CHANNEL_HISTORY_AREA, new QuantityType<>(area, SIUnits.SQUARE_METRE));
+        }
+        if (historyRecordDTO.getError() != null) {
+            historyRecord.addProperty("error", historyRecordDTO.getError());
+            updateState(CHANNEL_HISTORY_ERROR, new DecimalType(historyRecordDTO.getError()));
+        }
+        if (historyRecordDTO.getComplete() != null) {
+            historyRecord.addProperty("finished", historyRecordDTO.getComplete());
+            updateState(CHANNEL_HISTORY_FINISH, new DecimalType(historyRecordDTO.getComplete()));
+        }
+        if (historyRecordDTO.getFinishReason() != null) {
+            historyRecord.addProperty("finish_reason", historyRecordDTO.getFinishReason());
+            // updateState(CHANNEL_HISTORY_FINISHREASON, new DecimalType(historyRecordDTO.getFinishReason()));
+        }
+        if (historyRecordDTO.getDustCollectionStatus() != null) {
+            historyRecord.addProperty("dust_collection_status", historyRecordDTO.getDustCollectionStatus());
+            // updateState(CHANNEL_HISTORY_DUSTCOLLECTION, new DecimalType(historyRecordDTO.getDustCollectionStatus()));
+        }
         updateState(CHANNEL_HISTORY_RECORD, new StringType(historyRecord.toString()));
     }
 
@@ -570,7 +631,13 @@ public class MiIoVacuumHandler extends MiIoAbstractHandler {
             case CLEAN_RECORD_GET:
                 if (response.getResult().isJsonArray() && response.getResult().getAsJsonArray().size() > 0
                         && response.getResult().getAsJsonArray().get(0).isJsonArray()) {
-                    updateHistoryRecord(response.getResult().getAsJsonArray().get(0).getAsJsonArray());
+                    updateHistoryRecordLegacy(response.getResult().getAsJsonArray().get(0).getAsJsonArray());
+                } else if (response.getResult().isJsonObject()) {
+                    final HistoryRecordDTO historyRecordDTO = GSON.fromJson(response.getResult().getAsJsonObject(),
+                            HistoryRecordDTO.class);
+                    if (historyRecordDTO != null) {
+                        updateHistoryRecord(historyRecordDTO);
+                    }
                 } else {
                     logger.debug("Could not extract cleaning history record from: {}", response);
                 }
