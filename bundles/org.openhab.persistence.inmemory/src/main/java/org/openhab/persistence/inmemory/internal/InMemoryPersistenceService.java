@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -188,8 +188,8 @@ public class InMemoryPersistenceService implements ModifiablePersistenceService 
 
     @Override
     public List<PersistenceStrategy> getDefaultStrategies() {
-        // persist nothing by default
-        return List.of();
+        // persist only forecasts by default
+        return List.of(PersistenceStrategy.Globals.FORECAST);
     }
 
     private PersistenceItemInfo toItemInfo(Map.Entry<String, PersistItem> itemEntry) {
@@ -268,7 +268,7 @@ public class InMemoryPersistenceService implements ModifiablePersistenceService 
         }
     }
 
-    @SuppressWarnings({ "rawType", "unchecked" })
+    @SuppressWarnings("unchecked")
     private boolean applies(PersistEntry entry, FilterCriteria filter) {
         ZonedDateTime beginDate = filter.getBeginDate();
         if (beginDate != null && beginDate.isAfter(entry.timestamp())) {

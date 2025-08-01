@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -43,8 +43,8 @@ import org.openhab.core.thing.binding.ThingHandlerCallback;
  */
 public class AstroValidConfigurationTest {
 
-    private final String NULL_LONGITUDE = "51.2,null";
-    private final String NULL_LATITUDE = "null,25.4";
+    private static final String NULL_LONGITUDE = "51.2,null";
+    private static final String NULL_LATITUDE = "null,25.4";
 
     @Test
     public void testIfGeolocationIsProvidedForASunThing_theThingStatusBecomesONLINE() {

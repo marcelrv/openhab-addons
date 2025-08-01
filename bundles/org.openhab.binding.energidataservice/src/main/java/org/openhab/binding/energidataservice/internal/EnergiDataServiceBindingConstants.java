@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -17,6 +17,8 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Currency;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ChannelUID;
@@ -56,16 +58,26 @@ public class EnergiDataServiceBindingConstants {
             + ChannelUID.CHANNEL_GROUP_SEPARATOR + "co2-emission-prognosis";
     public static final String CHANNEL_CO2_EMISSION_REALTIME = CHANNEL_GROUP_ELECTRICITY
             + ChannelUID.CHANNEL_GROUP_SEPARATOR + "co2-emission-realtime";
+    public static final String CHANNEL_EVENT = CHANNEL_GROUP_ELECTRICITY + ChannelUID.CHANNEL_GROUP_SEPARATOR + "event";
 
     public static final Set<String> ELECTRICITY_CHANNELS = Set.of(CHANNEL_SPOT_PRICE, CHANNEL_GRID_TARIFF,
             CHANNEL_SYSTEM_TARIFF, CHANNEL_TRANSMISSION_GRID_TARIFF, CHANNEL_ELECTRICITY_TAX,
             CHANNEL_REDUCED_ELECTRICITY_TAX);
+
+    public static final Set<String> CO2_EMISSION_CHANNELS = Set.of(CHANNEL_CO2_EMISSION_PROGNOSIS,
+            CHANNEL_CO2_EMISSION_REALTIME);
+
+    public static final Set<String> SUBSCRIPTION_CHANNELS = Stream
+            .concat(ELECTRICITY_CHANNELS.stream(), CO2_EMISSION_CHANNELS.stream()).collect(Collectors.toSet());
 
     // List of all properties
     public static final String PROPERTY_REMAINING_CALLS = "remainingCalls";
     public static final String PROPERTY_TOTAL_CALLS = "totalCalls";
     public static final String PROPERTY_LAST_CALL = "lastCall";
     public static final String PROPERTY_NEXT_CALL = "nextCall";
+
+    // List of all events
+    public static final String EVENT_DAY_AHEAD_AVAILABLE = "DAY_AHEAD_AVAILABLE";
 
     // List of supported currencies
     public static final Currency CURRENCY_DKK = Currency.getInstance("DKK");
@@ -80,5 +92,6 @@ public class EnergiDataServiceBindingConstants {
     // Other
     public static final LocalTime DAILY_REFRESH_TIME_CET = LocalTime.of(13, 0);
     public static final LocalDate ENERGINET_CUTOFF_DATE = LocalDate.of(2023, 1, 1);
+    public static final LocalDate DAY_AHEAD_TRANSITION_DATE = LocalDate.of(2025, 9, 30);
     public static final String PROPERTY_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 }

@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -128,6 +128,15 @@ public class HaywardDiscoveryService extends AbstractThingHandlerDiscoveryServic
         // Find ColorLogic Lights
         final List<String> colorLogicProperty1 = thingHandler.evaluateXPath("//Backyard//ColorLogic-Light/Type/text()",
                 xmlResponse);
+
+        final List<String> colorLogicProperty2 = thingHandler
+                .evaluateXPath("//Backyard//ColorLogic-Light/V2-Active/text()", xmlResponse);
+
+        for (int i = 0; i < colorLogicProperty2.size(); i++) {
+            if (colorLogicProperty1.get(i).equals("COLOR_LOGIC_UCL") && colorLogicProperty2.get(i).equals("yes")) {
+                colorLogicProperty1.set(i, "COLOR_LOGIC_UCL_V2");
+            }
+        }
 
         discoverDevices(thingHandler, xmlResponse, "ColorLogic-Light", HaywardTypeToRequest.COLORLOGIC,
                 HaywardBindingConstants.THING_TYPE_COLORLOGIC, (props, i) -> {

@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -28,6 +28,7 @@ import org.openhab.binding.meater.internal.MeaterBridgeConfiguration;
 import org.openhab.binding.meater.internal.api.MeaterRestAPI;
 import org.openhab.binding.meater.internal.discovery.MeaterDiscoveryService;
 import org.openhab.binding.meater.internal.dto.MeaterProbeDTO;
+import org.openhab.binding.meater.internal.exceptions.MeaterException;
 import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
@@ -105,23 +106,24 @@ public class MeaterBridgeHandler extends BaseBridgeHandler {
         meaterProbeThings.clear();
     }
 
-    private boolean refreshAndUpdateStatus() {
+    private void refreshAndUpdateStatus() {
         MeaterRestAPI localAPI = api;
-        if (localAPI != null) {
-            if (localAPI.refresh(meaterProbeThings)) {
-                updateStatus(ThingStatus.ONLINE);
-                getThing().getThings().stream().forEach(thing -> {
-                    MeaterHandler handler = (MeaterHandler) thing.getHandler();
-                    if (handler != null) {
-                        handler.update();
-                    }
-                });
-                return true;
-            } else {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR);
-            }
+        if (localAPI == null) {
+            return;
         }
-        return false;
+
+        try {
+            localAPI.refresh(meaterProbeThings);
+            updateStatus(ThingStatus.ONLINE);
+            getThing().getThings().stream().forEach(thing -> {
+                MeaterHandler handler = (MeaterHandler) thing.getHandler();
+                if (handler != null) {
+                    handler.update();
+                }
+            });
+        } catch (MeaterException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+        }
     }
 
     private void startAutomaticRefresh() {

@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -17,10 +17,10 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
@@ -95,7 +95,7 @@ public class DaikinACUnitDiscoveryService extends AbstractDiscoveryService {
     }
 
     private void scanner() {
-        long timestampOfLastScan = getTimestampOfLastScan();
+        Instant timestampOfLastScan = getTimestampOfLastScan();
         for (InetAddress broadcastAddress : getBroadcastAddresses()) {
             logger.trace("Starting broadcast for {}", broadcastAddress.toString());
 
@@ -133,8 +133,8 @@ public class DaikinACUnitDiscoveryService extends AbstractDiscoveryService {
 
             Map<String, String> parsedData = InfoParser.parse(data);
             Boolean secure = "1".equals(parsedData.get("en_secure"));
-            String thingId = Optional.ofNullable(parsedData.get("ssid")).orElse(host.replace(".", "_"));
-            String mac = Optional.ofNullable(parsedData.get("mac")).orElse("");
+            String thingId = parsedData.getOrDefault("ssid", host.replace(".", "_"));
+            String mac = parsedData.getOrDefault("mac", "");
             String uuid = mac.isEmpty() ? UUID.randomUUID().toString()
                     : UUID.nameUUIDFromBytes(mac.getBytes()).toString();
 

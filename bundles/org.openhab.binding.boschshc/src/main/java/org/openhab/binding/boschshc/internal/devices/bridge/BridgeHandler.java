@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,15 +12,19 @@
  */
 package org.openhab.binding.boschshc.internal.devices.bridge;
 
-import static org.eclipse.jetty.http.HttpMethod.*;
+import static org.eclipse.jetty.http.HttpMethod.GET;
+import static org.eclipse.jetty.http.HttpMethod.POST;
+import static org.eclipse.jetty.http.HttpMethod.PUT;
 
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
@@ -32,6 +36,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.openhab.binding.boschshc.internal.devices.BoschDeviceIdUtils;
@@ -40,6 +45,7 @@ import org.openhab.binding.boschshc.internal.devices.BoschSHCHandler;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.Device;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.DeviceServiceData;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.LongPollResult;
+import org.openhab.binding.boschshc.internal.devices.bridge.dto.Message;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.PublicInformation;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.Room;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.Scenario;
@@ -51,6 +57,7 @@ import org.openhab.binding.boschshc.internal.exceptions.PairingFailedException;
 import org.openhab.binding.boschshc.internal.serialization.GsonUtils;
 import org.openhab.binding.boschshc.internal.services.dto.BoschSHCServiceState;
 import org.openhab.binding.boschshc.internal.services.dto.JsonRestExceptionResponse;
+import org.openhab.core.cache.ExpiringCache;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
@@ -83,9 +90,15 @@ import com.google.gson.reflect.TypeToken;
 @NonNullByDefault
 public class BridgeHandler extends BaseBridgeHandler {
 
+    private final Logger logger = LoggerFactory.getLogger(BridgeHandler.class);
+
+    public static final String THING_PROPERTY_SHC_GENERATION = "shcGeneration";
+    public static final String THING_PROPERTY_API_VERSIONS = "apiVersions";
+    public static final String CONFIGURATION_PARAMETER_IP_ADDRESS = "ipAddress";
+
     private static final String HTTP_CLIENT_NOT_INITIALIZED = "HttpClient not initialized";
 
-    private final Logger logger = LoggerFactory.getLogger(BridgeHandler.class);
+    private static final Duration ROOM_CACHE_DURATION = Duration.ofMinutes(2);
 
     /**
      * Handler to do long polling.
@@ -104,12 +117,21 @@ public class BridgeHandler extends BaseBridgeHandler {
 
     /**
      * SHC thing/device discovery service instance.
-     * Registered and unregistered if service is actived/deactived.
+     * Registered and unregistered if service is activated/deactivated.
      * Used to scan for things after bridge is paired with SHC.
      */
     private @Nullable ThingDiscoveryService thingDiscoveryService;
 
     private final ScenarioHandler scenarioHandler;
+
+    private ExpiringCache<List<Room>> roomCache = new ExpiringCache<>(ROOM_CACHE_DURATION, () -> {
+        try {
+            return getRooms();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
+    });
 
     public BridgeHandler(Bridge bridge) {
         super(bridge);
@@ -270,6 +292,8 @@ public class BridgeHandler extends BaseBridgeHandler {
                 return;
             }
 
+            updateThingProperties();
+
             // do thing discovery after pairing
             final ThingDiscoveryService discovery = thingDiscoveryService;
             if (discovery != null) {
@@ -283,6 +307,23 @@ public class BridgeHandler extends BaseBridgeHandler {
         } catch (InterruptedException e) {
             this.updateStatus(ThingStatus.UNKNOWN, ThingStatusDetail.UNKNOWN.NONE, "@text/offline.interrupted");
             Thread.currentThread().interrupt();
+        }
+    }
+
+    private void updateThingProperties() {
+        try {
+            PublicInformation publicInformation = getPublicInformation();
+            @Nullable
+            Map<String, String> properties = new HashMap<>();
+            properties.put(Thing.PROPERTY_MAC_ADDRESS, publicInformation.macAddress);
+            properties.put(THING_PROPERTY_SHC_GENERATION, publicInformation.shcGeneration);
+            properties.put(THING_PROPERTY_API_VERSIONS, publicInformation.getApiVersionsAsCommaSeparatedList());
+            updateProperties(properties);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("Thread was interrupted while retrieving public information to update thing properties.", e);
+        } catch (BoschSHCException | ExecutionException | TimeoutException e) {
+            logger.warn("Error while retrieving public information to update thing properties.", e);
         }
     }
 
@@ -355,7 +396,7 @@ public class BridgeHandler extends BaseBridgeHandler {
             Type collectionType = new TypeToken<ArrayList<Device>>() {
             }.getType();
             List<Device> nullableDevices = GsonUtils.DEFAULT_GSON_INSTANCE.fromJson(content, collectionType);
-            return Optional.ofNullable(nullableDevices).orElse(Collections.emptyList());
+            return nullableDevices != null ? nullableDevices : Collections.emptyList();
         } catch (TimeoutException | ExecutionException e) {
             logger.debug("Request devices failed because of {}!", e.getMessage(), e);
             return Collections.emptyList();
@@ -388,7 +429,7 @@ public class BridgeHandler extends BaseBridgeHandler {
             }.getType();
             List<UserDefinedState> nullableUserStates = GsonUtils.DEFAULT_GSON_INSTANCE.fromJson(content,
                     collectionType);
-            return Optional.ofNullable(nullableUserStates).orElse(Collections.emptyList());
+            return nullableUserStates != null ? nullableUserStates : Collections.emptyList();
         } catch (TimeoutException | ExecutionException e) {
             logger.debug("Request user-defined states failed because of {}!", e.getMessage(), e);
             return List.of();
@@ -432,6 +473,24 @@ public class BridgeHandler extends BaseBridgeHandler {
         } else {
             return emptyRooms;
         }
+    }
+
+    public @Nullable List<Room> getRoomsWithCache() {
+        return roomCache.getValue();
+    }
+
+    public @Nullable String resolveRoomId(@Nullable String roomId) {
+        if (roomId == null) {
+            return null;
+        }
+
+        @Nullable
+        List<Room> rooms = getRoomsWithCache();
+        if (rooms != null) {
+            return rooms.stream().filter(r -> r.id.equals(roomId)).map(r -> r.name).findAny().orElse(null);
+        }
+
+        return null;
     }
 
     /**
@@ -488,8 +547,42 @@ public class BridgeHandler extends BaseBridgeHandler {
                 if (channel != null && isLinked(channel.getUID())) {
                     updateState(channel.getUID(), new StringType(scenario.name));
                 }
+            } else if (serviceState instanceof Message message) {
+                handleMessage(message);
             }
         }
+    }
+
+    private void handleMessage(Message message) {
+        if (Message.SOURCE_TYPE_DEVICE.equals(message.sourceType) && message.sourceId != null) {
+            forwardMessageToDevice(message, message.sourceId);
+        }
+    }
+
+    private void forwardMessageToDevice(Message message, String deviceId) {
+        BoschSHCHandler deviceHandler = findDeviceHandler(deviceId);
+        if (deviceHandler == null) {
+            return;
+        }
+
+        deviceHandler.processMessage(message);
+    }
+
+    @Nullable
+    private BoschSHCHandler findDeviceHandler(String deviceIdToFind) {
+        for (Thing childThing : getThing().getThings()) {
+            @Nullable
+            ThingHandler baseHandler = childThing.getHandler();
+            if (baseHandler instanceof BoschSHCHandler handler) {
+                @Nullable
+                String deviceId = handler.getBoschID();
+
+                if (deviceIdToFind.equals(deviceId)) {
+                    return handler;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -836,19 +929,47 @@ public class BridgeHandler extends BaseBridgeHandler {
     }
 
     /**
-     * Sends a state change for a device to the controller
+     * Sends a state change for a device to the controller using a HTTP <code>PUT</code> request.
      *
-     * @param deviceId Id of device to change state for
-     * @param serviceName Name of service of device to change state for
-     * @param state New state data to set for service
+     * @param <T> type of the state object
+     * 
+     * @param deviceId the ID of the device for which the state should be updated
+     * @param serviceName the name of the service for which the state should be updated
+     * @param state object representing the new state data
      *
-     * @return Response of request
+     * @return the HTTP response of the Bosch Smart Home Controller
+     * 
      * @throws InterruptedException
      * @throws ExecutionException
      * @throws TimeoutException
      */
     public <T extends BoschSHCServiceState> @Nullable Response putState(String deviceId, String serviceName, T state)
             throws InterruptedException, TimeoutException, ExecutionException {
+        return sendState(deviceId, serviceName, state, PUT);
+    }
+
+    /**
+     * Sends a state change for a device to the controller using a HTTP <code>POST</code> request.
+     * 
+     * @param <T> type of the state object
+     * 
+     * @param deviceId the ID of the device for which the state should be updated
+     * @param serviceName the name of the service for which the state should be updated
+     * @param state object representing the new state data
+     * 
+     * @return the HTTP response of the Bosch Smart Home Controller
+     * 
+     * @throws InterruptedException
+     * @throws TimeoutException
+     * @throws ExecutionException
+     */
+    public <T extends BoschSHCServiceState> @Nullable Response postState(String deviceId, String serviceName, T state)
+            throws InterruptedException, TimeoutException, ExecutionException {
+        return sendState(deviceId, serviceName, state, POST);
+    }
+
+    private <T extends BoschSHCServiceState> @Nullable Response sendState(String deviceId, String serviceName, T state,
+            HttpMethod method) throws InterruptedException, TimeoutException, ExecutionException {
         @Nullable
         BoschHttpClient localHttpClient = this.httpClient;
         if (localHttpClient == null) {
@@ -858,7 +979,7 @@ public class BridgeHandler extends BaseBridgeHandler {
 
         // Create request
         String url = localHttpClient.getServiceStateUrl(serviceName, deviceId, state.getClass());
-        Request request = localHttpClient.createRequest(url, PUT, state);
+        Request request = localHttpClient.createRequest(url, method, state);
 
         // Send request
         return request.send();

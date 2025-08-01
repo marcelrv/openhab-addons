@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -15,7 +15,9 @@ package org.openhab.binding.mielecloud.internal.discovery;
 import static org.openhab.binding.mielecloud.internal.MieleCloudBindingConstants.*;
 import static org.openhab.binding.mielecloud.internal.handler.MieleHandlerFactory.SUPPORTED_THING_TYPES;
 
+import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -79,7 +81,7 @@ public class ThingDiscoveryService extends AbstractThingHandlerDiscoveryService<
     @Override
     public void dispose() {
         super.dispose();
-        removeOlderResults(System.currentTimeMillis(), getBridgeUid());
+        removeOlderResults(Instant.now(), getBridgeUid());
     }
 
     /**
@@ -166,7 +168,7 @@ public class ThingDiscoveryService extends AbstractThingHandlerDiscoveryService<
     protected void startBackgroundDiscovery() {
         logger.debug("Starting background discovery");
 
-        removeOlderResults(System.currentTimeMillis(), getBridgeUid());
+        removeOlderResults(Instant.now(), getBridgeUid());
         discoveringDevices = true;
     }
 
@@ -180,7 +182,7 @@ public class ThingDiscoveryService extends AbstractThingHandlerDiscoveryService<
      * Invoked when a device is removed from the Miele cloud.
      */
     public void onDeviceRemoved(String deviceIdentifier) {
-        removeOlderResults(System.currentTimeMillis(), getBridgeUid());
+        removeOlderResults(Instant.now(), getBridgeUid());
     }
 
     private String getLabel(DeviceState deviceState) {
@@ -189,7 +191,8 @@ public class ThingDiscoveryService extends AbstractThingHandlerDiscoveryService<
             return deviceName.get();
         }
 
-        return ThingInformationExtractor.getDeviceAndTechType(deviceState).orElse("Miele Device");
+        return Objects
+                .requireNonNull(ThingInformationExtractor.getDeviceAndTechType(deviceState).orElse("Miele Device"));
     }
 
     @Override

@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -44,9 +44,10 @@ import org.osgi.service.component.annotations.Reference;
 
 /**
  * Console command to list Bosch SHC devices and openhab support.
- * Use the SHC API to get all SHC devices and SHC services
- * and tries to lookup openhab devices and implemented service classes.
- * Prints each name and looked-up implementation on console.
+ * <p>
+ * Uses the SHC API to get all SHC devices and SHC services and tries to lookup
+ * openHAB devices and implemented service classes. Prints each name and
+ * looked-up implementation on console.
  *
  * @author Gerd Zanker - Initial contribution
  */
@@ -73,16 +74,19 @@ public class BoschShcCommandExtension extends AbstractConsoleCommandExtension im
 
     /**
      * Returns all implemented services of this Bosch SHC binding.
-     * This list shall contain all available services and needs to be extended when a new service is added.
-     * A unit tests checks if this list matches with the existing subfolders in
-     * "src/main/java/org/openhab/binding/boschshc/internal/services".
+     * <p>
+     * This list shall contain all available services and needs to be extended when
+     * a new service is added. A unit tests checks if this list matches with the
+     * existing subfolders in
+     * <code>src/main/java/org/openhab/binding/boschshc/internal/services</code>.
      */
     List<String> getAllBoschShcServices() {
-        return List.of("airqualitylevel", "batterylevel", "binaryswitch", "bypass", "cameranotification", "childlock",
-                "childprotection", "communicationquality", "hsbcoloractuator", "humiditylevel", "illuminance",
-                "intrusion", "keypad", "latestmotion", "multilevelswitch", "powermeter", "powerswitch", "privacymode",
-                "roomclimatecontrol", "shuttercontact", "shuttercontrol", "silentmode", "smokedetectorcheck",
-                "temperaturelevel", "userstate", "valvetappet");
+        return List.of("airqualitylevel", "alarm", "batterylevel", "binaryswitch", "bypass", "cameranotification",
+                "childlock", "childprotection", "communicationquality", "hsbcoloractuator", "humiditylevel",
+                "illuminance", "impulseswitch", "intrusion", "keypad", "latestmotion", "multilevelswitch", "powermeter",
+                "powerswitch", "privacymode", "roomclimatecontrol", "shuttercontact", "shuttercontrol", "silentmode",
+                "smokedetectorcheck", "temperaturelevel", "userstate", "valvetappet", "vibrationsensor",
+                "waterleakagesensor", "waterleakagesensorcheck", "waterleakagesensortilt");
     }
 
     @Override
@@ -178,13 +182,15 @@ public class BoschShcCommandExtension extends AbstractConsoleCommandExtension im
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("  deviceID: %1s%n", device.id));
         builder.append(String.format("      type: %1s -> ", device.deviceModel));
-        if (DEVICEMODEL_TO_THINGTYPE_MAP.containsKey(device.deviceModel)) {
-            builder.append(DEVICEMODEL_TO_THINGTYPE_MAP.get(device.deviceModel).getId());
+
+        ThingTypeUID thingTypeUID = DEVICEMODEL_TO_THINGTYPE_MAP.get(device.deviceModel);
+        if (thingTypeUID != null) {
+            builder.append(thingTypeUID.getId());
         } else {
             builder.append("!UNSUPPORTED!");
         }
-        builder.append(String.format("%n"));
 
+        builder.append(String.format("%n"));
         builder.append(buildDeviceServices(device.deviceServiceIds));
         return builder.toString();
     }
@@ -256,9 +262,7 @@ public class BoschShcCommandExtension extends AbstractConsoleCommandExtension im
 
     @Override
     public boolean complete(String[] args, int cursorArgumentIndex, int cursorPosition, List<String> candidates) {
-        if (cursorArgumentIndex <= 0) {
-            return SUBCMD_COMPLETER.complete(args, cursorArgumentIndex, cursorPosition, candidates);
-        }
-        return false;
+        return cursorArgumentIndex <= 0
+                && SUBCMD_COMPLETER.complete(args, cursorArgumentIndex, cursorPosition, candidates);
     }
 }

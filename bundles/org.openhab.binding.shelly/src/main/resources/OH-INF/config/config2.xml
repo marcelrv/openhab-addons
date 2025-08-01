@@ -29,7 +29,7 @@
 		<parameter name="enableRangeExtender" type="boolean" required="false">
 			<label>@text/thing-type.config.shelly.enableRangeExtender.label</label>
 			<description>@text/thing-type.config.shelly.enableRangeExtender.description</description>
-			<default>true</default>
+			<default>false</default>
 		</parameter>
 	</config-description>
 
@@ -116,6 +116,11 @@
 			<default>60</default>
 			<unitLabel>seconds</unitLabel>
 			<advanced>true</advanced>
+		</parameter>
+		<parameter name="enableBluGateway" type="boolean" required="false">
+			<label>@text/thing-type.config.shelly.enableBluGateway.label</label>
+			<description>@text/thing-type.config.shelly.enableBluGateway.description</description>
+			<default>false</default>
 		</parameter>
 	</config-description>
 </config-description:config-descriptions>

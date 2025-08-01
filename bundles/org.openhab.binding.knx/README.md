@@ -9,7 +9,7 @@ The KNX binding then can communicate directly with this gateway.
 Alternatively, a PC running [KNXD](https://github.com/knxd/knxd) (free open source component software) can be put in between which then acts as a broker allowing multiple clients to connect to the same gateway.
 Since the protocol is identical, the KNX binding can also communicate with it transparently.
 
-***Attention:*** With the introduction of Unit of Measurement (UoM) support, some data types have changed (see `number` channel below):
+_**Attention:**_ With the introduction of Unit of Measurement (UoM) support, some data types have changed (see `number` channel below):
 
 - Data type for DPT 5.001 (Percent 8bit, 0 -> 100%) has changed from `PercentType` to `QuantityType`for `number` channels (`dimmer`, `color`, `rollershutter` channels stay with `PercentType`).
 - Data type for DPT 5.004 (Percent 8bit, 0 -> 255%) has changed from `PercentType` to `QuantityType`.
@@ -50,35 +50,40 @@ as multicast traffic is typically not forwarded.
 The IP Gateway is the most commonly used way to connect to the KNX bus.
 At its base, the _ip_ bridge accepts the following configuration parameters:
 
-| Name                | Required     | Description                                                                                                  | Default value                                        |
-|---------------------|--------------|--------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| type                | Yes          | The IP connection type for connecting to the KNX bus (`TUNNEL`, `ROUTER`, `SECURETUNNEL` or `SECUREROUTER`)  | -                                                    |
-| ipAddress           | for `TUNNEL` | Network address of the KNX/IP gateway. If type `ROUTER` is set, the IPv4 Multicast Address can be set.       | for `TUNNEL`: \<nothing\>, for `ROUTER`: 224.0.23.12 |
-| portNumber          | for `TUNNEL` | Port number of the KNX/IP gateway                                                                            | 3671                                                 |
-| localIp             | No           | Network address of the local host to be used to set up the connection to the KNX/IP gateway                  | the system-wide configured primary interface address |
-| localSourceAddr     | No           | The (virtual) individual address for identification of this openHAB Thing within the KNX bus <br/><br/>Note: Use a free address, not the one of the interface. Or leave it at `0.0.0` and let openHAB decide which address to use. When using knxd, make sure _not to use_ one of the addresses reserved for tunneling clients.  | 0.0.0                                                |
-| useNAT              | No           | Whether there is network address translation between the server and the gateway                              | false                                                |
-| readingPause        | No           | Time in milliseconds of how long should be paused between two read requests to the bus during initialization | 50                                                   |
-| responseTimeout     | No           | Timeout in seconds to wait for a response from the KNX bus                                                   | 10                                                   |
-| readRetriesLimit    | No           | Limits the read retries while initialization from the KNX bus                                                | 3                                                    |
-| autoReconnectPeriod | No           | Seconds between connect retries when KNX link has been lost (0 means never).                                 | 0                                                    |
-| routerBackboneKey   | No           | KNX secure: Backbone key for secure router mode                                                              | -                                                    |
-| tunnelUserId        | No           | KNX secure: Tunnel user id for secure tunnel mode (if specified, it must be a number >0)                     | -                                                    |
-| tunnelUserPassword  | No           | KNX secure: Tunnel user key for secure tunnel mode                                                           | -                                                    |
-| tunnelDeviceAuthentication  | No   | KNX secure: Tunnel device authentication for secure tunnel mode                                              | -                                                    |
+| Name                | Required     | Description                                                                                                                      | Default value                                             |
+|---------------------|--------------|----------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| type                | Yes          | The IP connection type for connecting to the KNX bus (`TUNNEL`, `ROUTER`, `SECURETUNNEL` or `SECUREROUTER`)                      | -                                                         |
+| ipAddress           | for `TUNNEL` | Network address of the KNX/IP gateway. If type `ROUTER` is set, the IPv4 Multicast Address can be set.                           | for `TUNNEL`: \<nothing\>, for `ROUTER`: 224.0.23.12      |
+| portNumber          | for `TUNNEL` | Port number of the KNX/IP gateway                                                                                                | 3671                                                      |
+| localIp             | No           | Network address of the local host to be used to set up the connection to the KNX/IP gateway                                      | the system-wide configured primary interface address      |
+| localSourceAddr     | No           | The (virtual) individual address for identification of this openHAB Thing within the KNX bus <br/><br/>Note: Use a free address, not the one of the interface. Or leave it at `0.0.0` and let openHAB decide which address to use.<br/>When using knxd, make sure _not to use_ one of the addresses reserved for tunneling clients. | 0.0.0                                                     |
+| useNAT              | No           | Whether there is network address translation between the server and the gateway                                                  | false                                                     |
+| readingPause        | No           | Time in milliseconds of how long should be paused between two read requests to the bus during initialization                     | 50                                                        |
+| responseTimeout     | No           | Timeout in seconds to wait for a response from the KNX bus                                                                       | 10                                                        |
+| readRetriesLimit    | No           | Limits the read retries while initialization from the KNX bus                                                                    | 3                                                         |
+| autoReconnectPeriod | No           | Seconds between connect retries when KNX link has been lost (0 means never).                                                     | 0                                                         |
+| routerBackboneKey   | No           | KNX secure: Backbone key for secure router mode                                                                                  | -                                                         |
+| tunnelUserId        | No           | KNX secure: Tunnel user id for secure tunnel mode (if specified, it must be a number >0)                                         | -                                                         |
+| tunnelUserPassword  | No           | KNX secure: Tunnel user key for secure tunnel mode                                                                               | -                                                         |
+| tunnelDeviceAuthentication  | No   | KNX secure: Tunnel device authentication for secure tunnel mode                                                                  | -                                                         |
+| keyringFile         | No           | KNX secure: Keyring file exported from ETS and placed in openHAB config/misc folder. Mandatory to decode secure group addresses. | -                                                         |
+| keyringPassword     | No           | KNX secure: Keyring file password (set during export from ETS)                                                                   | -                                                         |
+| tunnelSourceAddress | No           | KNX secure: Physical KNX address of tunnel in secure mode to identify tunnel. If given, openHAB will read tunnelUserId, tunnelUserPassword, tunnelDeviceAuthentication from keyring.  | -    |
 
 ### Serial Gateway
 
 The _serial_ bridge accepts the following configuration parameters:
 
-| Name                | Required | Description                                                                                                  | Default value |
-|---------------------|----------|--------------------------------------------------------------------------------------------------------------|---------------|
-| serialPort          | Y        | The serial port to use for connecting to the KNX bus                                                         | -             |
-| readingPause        | N        | Time in milliseconds of how long should be paused between two read requests to the bus during initialization | 50            |
-| responseTimeout     | N        | Timeout in seconds to wait for a response from the KNX bus                                                   | 10            |
-| readRetriesLimit    | N        | Limits the read retries while initialization from the KNX bus                                                | 3             |
-| autoReconnectPeriod | N        | Seconds between connect retries when KNX link has been lost, 0 means never retry                             | 0             |
-| useCemi             | N        | Use newer CEMI message format, useful for newer devices like KNX RF sticks, kBerry, etc.                     | false         |
+| Name                | Required | Description                                                                                                                      | Default value |
+|---------------------|----------|----------------------------------------------------------------------------------------------------------------------------------|---------------|
+| serialPort          | Y        | The serial port to use for connecting to the KNX bus                                                                             | -             |
+| readingPause        | N        | Time in milliseconds of how long should be paused between two read requests to the bus during initialization                     | 50            |
+| responseTimeout     | N        | Timeout in seconds to wait for a response from the KNX bus                                                                       | 10            |
+| readRetriesLimit    | N        | Limits the read retries while initialization from the KNX bus                                                                    | 3             |
+| autoReconnectPeriod | N        | Seconds between connect retries when KNX link has been lost, 0 means never retry                                                 | 0             |
+| useCemi             | N        | Use newer CEMI message format, useful for newer devices like KNX RF sticks, kBerry, etc.                                         | false         |
+| keyringFile         | N        | KNX secure: Keyring file exported from ETS and placed in openHAB config/misc folder. Mandatory to decode secure group addresses. | -             |
+| keyringPassword     | N        | KNX secure: Keyring file password (set during export from ETS)                                                                   | -             |
 
 ## Things
 
@@ -141,7 +146,7 @@ This option can be selected using the special DPT 251.60600.
 |-----------|---------------|-------------|
 | ga        | Group address | 1.009       |
 
-*Attention:* Due to a bug in the original implementation, the states for DPT 1.009 are inverted (i.e., `1` is mapped to `OPEN` instead of `CLOSE`).
+_Attention:_ Due to a bug in the original implementation, the states for DPT 1.009 are inverted (i.e., `1` is mapped to `OPEN` instead of `CLOSE`).
 A change would break all existing installations and is therefore not implemented.
 
 ##### Channel Type `datetime`, `datetime-control`
@@ -158,7 +163,7 @@ A change would break all existing installations and is therefore not implemented
 | position         | Group address of the absolute position | 5.001       |
 | increaseDecrease | Group address for relative movement    | 3.007       |
 
-##### Channel Type `number`, `number-control` 
+##### Channel Type `number`, `number-control`
 
 | Parameter | Description   | Default DPT |
 |-----------|---------------|-------------|
@@ -217,7 +222,6 @@ When a `GroupValueRead` telegram is sent from the KNX bus to a *-control Channel
 | increaseDecrease | Group address for relative movement                                                                                                           | 3.007       |
 | frequency        | Increase/Decrease frequency in milliseconds in case the binding should handle that (0 if the KNX device sends the commands repeatedly itself) | 0           |
 
-
 ##### Channel Type "rollershutter-control"
 
 | Parameter | Description                             | Default DPT |
@@ -232,7 +236,7 @@ When a `GroupValueRead` telegram is sent from the KNX bus to a *-control Channel
 |-----------|---------------|-------------|
 | ga        | Group address | 1.009       |
 
-*Attention:* Due to a bug in the original implementation, the states for DPT 1.009 are inverted (i.e. `1` is mapped to `OPEN` instead of `CLOSE`).
+_Attention:_ Due to a bug in the original implementation, the states for DPT 1.009 are inverted (i.e. `1` is mapped to `OPEN` instead of `CLOSE`).
 A change would break all existing installations and is therefore not implemented.
 
 ##### Channel Type "number-control"
@@ -305,23 +309,23 @@ Further DPTs and subtypes may be added later once implemented and released in th
 | 1.023-1.024     | OnOffType (switch), OpenClosedType (contact)       |                                   |
 | 1.100           | OnOffType (switch), OpenClosedType (contact)       |                                   |
 | 1.1200-1.1201   | OnOffType (switch), OpenClosedType (contact)       |                                   |
-|||
+|                 |                                                     |                                   |
 | 2.001-2.012     | DecimalType (number)                               |                                   |
-|||
+|                 |                                                     |                                   |
 | 3.007           | IncreaseDecreaseType (e.g. dimmer)                 |                                   |
 | 3.008           | UpDownType (e.g. rollershutter)                    |                                   |
-|||
+|                 |                                                     |                                   |
 | 5.001           | QuantityType\<> (number) (Number:Percent)          | Alternatively: PercentType        |
 | 5.003           | QuantityType\<> (number) (Number:Angle)            |                                   |
 | 5.004           | QuantityType\<> (number) (Number:Percent)          | 0-255%, no mapping to PercentType |
 | 5.005           | DecimalType (number)                               |                                   |
 | 5.006           | DecimalType (number)                               | 255 is reserved                   |
 | 5.010           | DecimalType (number)                               |                                   |
-|||
+|                 |                                                     |                                   |
 | 6.001           | QuantityType\<> (number) (Number:Percent)          | -128..127%, no mapping to PercentType |
 | 6.010           | DecimalType (number)                               | -128..127                         |
 | 6.020           | StringType (string)                                | Override with DPT5.010 if you need DecimalType |
-|||
+|                 |                                                     |                                   |
 | 7.001           | DecimalType (number)                               |                                   |
 | 7.002-7.007     | QuantityType\<> (number) (Number:Time)             |                                   |
 | 7.010           | DecimalType (number)                               |                                   |
@@ -329,13 +333,13 @@ Further DPTs and subtypes may be added later once implemented and released in th
 | 7.012           | QuantityType\<> (number) (Number:ElectricCurrent)  |                                   |
 | 7.013           | QuantityType\<> (number) (Number:Length)           |                                   |
 | 7.600           | QuantityType\<> (number) (Number:Temperature)      |                                   |
-|||
+|                 |                                                     |                                   |
 | 8.001           | DecimalType (number)                               |                                   |
 | 8.002-7.007     | QuantityType\<> (number) (Number:Time)             |                                   |
 | 8.010           | QuantityType\<> (number) (Number:Percent)          |                                   |
 | 8.011           | QuantityType\<> (number) (Number:Angle)            |                                   |
 | 8.012           | QuantityType\<> (number) (Number:Length)           |                                   |
-|||
+|                 |                                                     |                                   |
 | 9.xxx           | QuantityType\<> (number) (Number:...)              | See [documentation on UOM](https://www.openhab.org/docs/concepts/units-of-measurement.html) |
 | 9.001           | QuantityType\<> (number) (Number:...)              | Lower values than absolute zero will be set to -273 °C |
 | 9.002-9.003     | QuantityType\<> (number) (Number:...)              |                                   |
@@ -343,35 +347,35 @@ Further DPTs and subtypes may be added later once implemented and released in th
 | 9.009-9.011     | QuantityType\<> (number) (Number:...)              |                                   |
 | 9.020-9.027     | QuantityType\<> (number) (Number:...)              |                                   |
 | 9.027-9.030     | QuantityType\<> (number) (Number:...)              | No negative values allowed        |
-|||
+|                 |                                                     |                                   |
 | 10.001          | DateTimeType (datetime)                            | Time. Date is set to 1/Jan/1970 + ofs if weekday is given. KNX can represent year 1990..2089. |
-|||
+|                 |                                                     |                                   |
 | 11.001          | DateTimeType (datetime)                            | Date only.                        |
-|||
+|                 |                                                     |                                   |
 | 12.001          | DecimalType (number)                               |                                   |
 | 12.100-12.102   | QuantityType\<> (number) (Number:Time)             |                                   |
 | 12.1200-12.1201 | QuantityType\<> (number) (Number:Volume)           |                                   |
-|||
+|                 |                                                     |                                   |
 | 13.xxx          | QuantityType\<> (number) (Number:...)              | See [documentation on UOM](https://www.openhab.org/docs/concepts/units-of-measurement.html) |
 | 13.001          | DecimalType (number)                               |                                   |
 | 13.002          | QuantityType\<> (number) (Number:VolumetricFlowRate) |                                 |
 | 13.010-13.016   | QuantityType\<> (number) (Number:...)              |                                   |
 | 13.100          | QuantityType\<> (number) (Number:...)              |                                   |
 | 13.1200-13.1201 | QuantityType\<> (number) (Number:Time)             |                                   |
-|||
+|                 |                                                     |                                   |
 | 14.xxx          | QuantityType\<> (number) (Number:...)              | See [documentation on UOM](https://www.openhab.org/docs/concepts/units-of-measurement.html) |
 | 14.000-14.080   | QuantityType\<> (number) (Number:...)              |                                   |
 | 14.1200-14.1201 | QuantityType\<> (number) (Number:...)              |                                   |
-|||
+|                 |                                                     |                                   |
 | 16.000          | StringType (string)                                | ASCII                             |
 | 16.001          | StringType (string)                                | ISO 8859-1                        |
-|||
+|                 |                                                     |                                   |
 | 17.001          | DecimalType (number)                               | Scene 0..63                       |
-|||
+|                 |                                                     |                                   |
 | 18.001          | DecimalType (number)                               | Scene 0..63, add offset 0x80 (128) for storing scenes |
-|||
+|                 |                                                     |                                   |
 | 19.001          | DateTimeType (datetime) (DateTime)                 | Date and Time, year can be 1900..2155 |
-|||
+|                 |                                                     |                                   |
 | 20.xxx          |                                                    | Override with DPT5.010 if you need enum as DecimalType |
 | 20.001-20.009   | StringType (string)                                |                                   |
 | 20.011-20.014   | StringType (string)                                |                                   |
@@ -384,7 +388,7 @@ Further DPTs and subtypes may be added later once implemented and released in th
 | 20.1000-20.1005 | StringType (string)                                |                                   |
 | 20.1200         | StringType (string)                                |                                   |
 | 20.1202-20.1209 | StringType (string)                                |                                   |
-|||
+|                 |                                                     |                                   |
 | 21.xxx          |                                                    | Override with DPT5.010 if you need bitset as DecimalType |
 | 21.001-20.002   | StringType (string)                                |                                   |
 | 21.100-20.106   | StringType (string)                                |                                   |
@@ -392,42 +396,42 @@ Further DPTs and subtypes may be added later once implemented and released in th
 | 21.1000-21.1002 | StringType (string)                                |                                   |
 | 21.1010         | StringType (string)                                |                                   |
 | 21.1200-21.1201 | StringType (string)                                |                                   |
-|||
+|                 |                                                     |                                   |
 | 22.xxx          |                                                    | Override with DPT7.010 if you need bitset as DecimalType |
 | 22.100-22.101   | StringType (string)                                |                                   |
 | 22.1000         | StringType (string)                                |                                   |
 | 22.1010         | StringType (string)                                |                                   |
-|||
+|                 |                                                     |                                   |
 | 28.001          | StringType (string)                                | KNX representation is Null-terminated, do not include null characters |
-|||
+|                 |                                                     |                                   |
 | 29.010-29.012   | QuantityType\<> (number) (Number:...)              |                                   |
-|||
+|                 |                                                     |                                   |
 | 229.001         | DecimalType (number)                               | Scaling coded in KNX frame is regarded; for sending always encoded with flag "dimensionless" |
-|||
+|                 |                                                     |                                   |
 | 232.600         | HSBType (color)                                    | RGB                                  |
 | 232.60000       | HSBType (color)                                    | Non-Standard, DPT 232.600 with HSB instead of RGB data |
-||| 
+|                 |                                                     |                                   |
 | 235.001         | QuantityType\<> (number) (Number:ActiveEnergy)     | Composed DPT 235.001, first element ActiveEnergy (Wh), read only  |
 | 235.61001       | DecimalType (number)                               | Non-Standard, composed DPT 235.001, second element Tariff (plain number), read only |
-|||
+|                 |                                                     |                                   |
 | 242.600         | HSBType (color)                                    | xyY                               |
-|||
+|                 |                                                     |                                   |
 | 243.600         | StringType (string)                                |                                   |
-|||
+|                 |                                                     |                                   |
 | 249.600         | StringType (string)                                |                                   |
-|||
+|                 |                                                     |                                   |
 | 250.600         | StringType (string)                                |                                   |
-|||
+|                 |                                                     |                                   |
 | 251.600         | HSBType (color)                                    | RGBW, RGB part as HSBType         |
 | 251.600         | PercentType                                        | RGBW, W part separately for Dimmer |
 | 251.60600       | HSBType (color)                                    | Non-Standard, lossy conversion from HSBType to RGBW |
-|||
+|                 |                                                     |                                   |
 | 252.600         | StringType (string)                                |                                   |
-|||
+|                 |                                                     |                                   |
 | 253.600         | StringType (string)                                |                                   |
-|||
+|                 |                                                     |                                   |
 | 254.600         | StringType (string)                                |                                   |
-|||
+|                 |                                                     |                                   |
 
 ## Special DPTs
 
@@ -452,16 +456,22 @@ It **requires a KNX Secure Router or a Secure IP Interface** and a KNX installat
 
 For _Secure routing_ mode, the so-called `backbone key` needs to be configured in openHAB.
 It is created by the ETS tool and cannot be changed via the ETS user interface.
+There are two possible ways to provide the key to openHAB:
 
 - The backbone key can be extracted from Security report (ETS, Reports, Security, look for a 32-digit key) and specified in parameter `routerBackboneKey`.
+- The backbone key is included in ETS keyring export (ETS, project settings, export keyring). Keyring file is configured using `keyringFile` (put it in `config\misc` folder of the openHAB installation) and also requires `keyringPassword`.
 
 For _Secure tunneling_ with a Secure IP Interface (or a router in tunneling mode), more parameters are required.
 A unique device authentication key, and a specific tunnel identifier and password need to be available.
+It can be provided to openHAB in two different ways:
 
 - All information can be looked up in ETS and provided separately: `tunnelDeviceAuthentication`, `tunnelUserPassword`.
  `tunnelUserId` is a number that is not directly visible in ETS, but can be looked up in keyring export or deduced (typically 2 for the first tunnel of a device, 3 for the second one, ...).
  `tunnelUserPasswort` is set in ETS in the properties of the tunnel (below the IP interface, you will see the different tunnels listed) and denoted as "Password".
  `tunnelDeviceAuthentication` is set in the properties of the IP interface itself; check for the tab "IP" and the description "Authentication Code".
+- All necessary information is included in ETS keyring export (ETS, project settings, export keyring).
+ Keyring file is configured using `keyringFile` (put it in `config\misc` folder of the openHAB installation) and `keyringPassword`.
+ In addition, `tunnelSourceAddress` needs to be set to uniquely identify the tunnel in use.
 
 ### KNX Data Secure
 
@@ -469,7 +479,14 @@ KNX Data Secure protects the content of messages on the KNX bus.
 In a KNX installation, both classic and secure group addresses can coexist.
 Data Secure does _not_ necessarily require a KNX Secure Router or a Secure IP Interface, but a KNX installation with newer KNX devices that support Data Secure and with **security features enabled in the ETS tool**.
 
-> NOTE: **openHAB currently ignores messages with secure group addresses.**
+**openHAB ignores messages with secure group addresses, unless data secure is configured.**
+
+> NOTE: openHAB currently does fully support passive (listening) access to secure group addresses.
+Write access to secure group addresses is currently disabled in openHAB.
+Initial/periodic read will fail, avoid automatic read (< in thing definition).
+
+All necessary information to decode secure group addresses is included in ETS keyring export (ETS, project settings, export keyring).
+Keyring file is configured using `keyringFile` (put it in `config\misc` folder of the openHAB installation) and also requires `keyringPassword`.
 
 ## Examples
 
@@ -603,7 +620,7 @@ Bridge knx:serial:bridge [
     Thing device generic {
         Type switch-control        : controlSwitch        "Control Switch"        [ ga="3/3/10+<3/3/11" ]   // '<'  signs are allowed but will be ignored for control Channels
         Type dimmer-control        : controlDimmer        "Control Dimmer"        [ switch="3/3/50+3/3/48", position="3/3/46", increaseDecrease="3/3/49", frequency=300 ]
-        Type color                 : controlColorLight    "Color"                 [ hsb="6/0/10", switch="6/0/12", position="6/0/14", 
+        Type color                 : controlColorLight    "Color"                 [ hsb="6/0/10", switch="6/0/12", position="6/0/14",
         Type rollershutter-control : controlRollershutter "Control Rollershutter" [ upDown="3/4/1+3/4/2", stopMove="3/4/3", position="3/4/4" ]
         Type number-control        : controlNumber        "Control Number"        [ ga="1/2/2" ]
         Type string-control        : controlString        "Control String"        [ ga="1/4/2" ]
@@ -630,3 +647,73 @@ Dimmer        demoDimmer         "Dimmer [%d %%]"           <light>          { c
 
 The KNX binding provides additional functionality which can be triggered from the openHAB console.
 Type `openhab:knx` on the openHAB console for further information.
+
+## Troubleshooting
+
+### Extended Logging
+
+Logging can be configured via the UI.
+This affects only the log of the binding and does not include Calimero library used for KNX communication.
+In special cases, it might be useful to set both KNX logging and Calimero logging.
+This can be done in the openHAB console:
+
+```shell
+log:set TRACE org.openhab.binding.knx
+log:set TRACE calimero
+```
+
+Note that this will lead to a few lines in the log for each KNX frame received or sent.
+
+Logging can be set back to normal, similarly using:
+
+```shell
+log:set DEFAULT org.openhab.binding.knx
+log:set DEFAULT calimero
+```
+
+### Serial Devices
+
+In case you experience communication errors like incomplete or dropped frames, BCU reset errors in the log, or similar problems:
+
+- Make sure that no other service accesses the serial port (e.g., `knxd`, `hciuart`, etc.).
+Use `ps aux` and make sure none of those are running in parallel.
+- Increase the log level also for Calimero library, see above.
+- If the problem relates only to KNX data secure, please note that very old KNX devices do not support long frames, which are required for KNX data secure. Check your interface and the couplers (technical reference manual, ETS, or openHAB device info when fetch is enabled).
+
+### kBerry Module for Raspberry Pi
+
+#### Configuration of the kBerry Module
+
+Uploading an application to the module is not necessary for use with openHAB.
+
+#### Configuration of the Serial Port
+
+Configuration of the serial port is necessary.
+This is done by editing text files in the folder `/boot/firmware` on the PI (for older distributions, it is `/boot`).
+This can be done manually or using the tool `raspi-config`.
+
+If something goes wrong, you can also recover using a Windows machine, as this partition is also accessible from Windows when using a micro SD card reader.
+
+##### config.txt
+
+The serial port (UART) needs to be activated on GPIO pins 14 and 15.
+The configuration options have changed over time, depending on the Linux distribution and the hardware revision of the Raspberry Pi.
+
+The following settings might work for you:
+
+For PI 5, add `dtoverlay=disable-bt` and `dtoverlay=uart0`.
+
+For PI 4, add `dtoverlay=disable-bt`.
+
+For PI 3, add `dtoverlay=pi3-miniuart-bt`.
+
+##### cmdline.txt
+
+Remove the part that refers to the serial port, e.g. `console=serial0,115200`.
+
+Finally, reboot the PI.
+
+#### openHAB Configuration
+
+Add a KNX Thing manually, KNX FT1.2 Interface, select `/dev/ttyAMA0` as port.
+If you use file-based configuration, see the example above.

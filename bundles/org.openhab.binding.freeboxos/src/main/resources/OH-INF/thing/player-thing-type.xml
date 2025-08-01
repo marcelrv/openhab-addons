@@ -11,12 +11,16 @@
 
 		<label>Freebox Player</label>
 		<description>The player is the device connected to your TV</description>
+		<semantic-equipment-tag>MediaPlayer</semantic-equipment-tag>
 
 		<channel-groups>
 			<channel-group typeId="player-actions" id="player-actions"/>
-			<channel-group typeId="sysinfo" id="sysinfo"/>
 			<channel-group typeId="connectivity" id="connectivity"/>
 		</channel-groups>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 
 		<representation-property>macAddress</representation-property>
 
@@ -34,9 +38,13 @@
 		<channel-groups>
 			<channel-group typeId="player-actions" id="player-actions"/>
 			<channel-group typeId="player-status" id="player-status"/>
-			<channel-group typeId="sysinfo" id="sysinfo"/>
+			<channel-group typeId="player-sysinfo" id="sysinfo"/>
 			<channel-group typeId="connectivity" id="connectivity"/>
 		</channel-groups>
+
+		<properties>
+			<property name="thingTypeVersion">1</property>
+		</properties>
 
 		<representation-property>macAddress</representation-property>
 

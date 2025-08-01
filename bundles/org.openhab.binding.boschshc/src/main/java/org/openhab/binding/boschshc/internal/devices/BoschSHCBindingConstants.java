@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -28,6 +28,10 @@ import org.openhab.core.thing.ThingTypeUID;
 @NonNullByDefault
 public class BoschSHCBindingConstants {
 
+    private BoschSHCBindingConstants() {
+        // Class containing constants only
+    }
+
     public static final String BINDING_ID = "boschshc";
 
     // List of all Thing Type UIDs
@@ -37,6 +41,8 @@ public class BoschSHCBindingConstants {
     public static final ThingTypeUID THING_TYPE_TWINGUARD = new ThingTypeUID(BINDING_ID, "twinguard");
     public static final ThingTypeUID THING_TYPE_WINDOW_CONTACT = new ThingTypeUID(BINDING_ID, "window-contact");
     public static final ThingTypeUID THING_TYPE_WINDOW_CONTACT_2 = new ThingTypeUID(BINDING_ID, "window-contact-2");
+    public static final ThingTypeUID THING_TYPE_WINDOW_CONTACT_2_PLUS = new ThingTypeUID(BINDING_ID,
+            "window-contact-2-plus");
     public static final ThingTypeUID THING_TYPE_MOTION_DETECTOR = new ThingTypeUID(BINDING_ID, "motion-detector");
     public static final ThingTypeUID THING_TYPE_SHUTTER_CONTROL = new ThingTypeUID(BINDING_ID, "shutter-control");
     public static final ThingTypeUID THING_TYPE_SHUTTER_CONTROL_2 = new ThingTypeUID(BINDING_ID, "shutter-control-2");
@@ -55,6 +61,8 @@ public class BoschSHCBindingConstants {
     public static final ThingTypeUID THING_TYPE_SMOKE_DETECTOR_2 = new ThingTypeUID(BINDING_ID, "smoke-detector-2");
     public static final ThingTypeUID THING_TYPE_LIGHT_CONTROL_2 = new ThingTypeUID(BINDING_ID, "light-control-2");
     public static final ThingTypeUID THING_TYPE_DIMMER = new ThingTypeUID(BINDING_ID, "dimmer");
+    public static final ThingTypeUID THING_TYPE_WATER_DETECTOR = new ThingTypeUID(BINDING_ID, "water-detector");
+    public static final ThingTypeUID THING_TYPE_RELAY = new ThingTypeUID(BINDING_ID, "relay");
 
     public static final ThingTypeUID THING_TYPE_USER_DEFINED_STATE = new ThingTypeUID(BINDING_ID, "user-defined-state");
 
@@ -102,7 +110,18 @@ public class BoschSHCBindingConstants {
     public static final String CHANNEL_KEY_NAME = "key-name";
     public static final String CHANNEL_KEY_EVENT_TYPE = "key-event-type";
     public static final String CHANNEL_KEY_EVENT_TIMESTAMP = "key-event-timestamp";
-
+    public static final String CHANNEL_WATER_LEAKAGE = "water-leakage";
+    public static final String CHANNEL_PUSH_NOTIFICATIONS_ON_MOVE = "push-notifications-on-move";
+    public static final String CHANNEL_ACOUSTIC_SIGNALS_ON_MOVE = "acoustic-signals-on-move";
+    public static final String CHANNEL_WATER_LEAKAGE_SENSOR_CHECK = "water-leakage-sensor-check";
+    public static final String CHANNEL_SENSOR_MOVED = "sensor-moved";
+    public static final String CHANNEL_IMPULSE_SWITCH = "impulse-switch";
+    public static final String CHANNEL_IMPULSE_LENGTH = "impulse-length";
+    public static final String CHANNEL_INSTANT_OF_LAST_IMPULSE = "instant-of-last-impulse";
+    public static final String CHANNEL_ALARM = "alarm";
+    public static final String CHANNEL_VIBRATION_SENSOR_ENABLED = "vibration-sensor-enabled";
+    public static final String CHANNEL_VIBRATION_SENSOR_SENSITIVITY = "vibration-sensor-sensitivity";
+    public static final String CHANNEL_VIBRATION_SENSOR_STATE = "vibration-sensor-state";
     // numbered channels
     // the rationale for introducing numbered channels was discussed in
     // https://github.com/openhab/openhab-addons/pull/16400
@@ -115,4 +134,8 @@ public class BoschSHCBindingConstants {
 
     // static device/service names
     public static final String SERVICE_INTRUSION_DETECTION = "intrusionDetectionSystem";
+
+    // thing properties
+    public static final String PROPERTY_LOCATION_LEGACY = "Location";
+    public static final String PROPERTY_LOCATION = "location";
 }

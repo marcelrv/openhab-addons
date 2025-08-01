@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -311,8 +311,7 @@ public class WatsonSTTService implements STTService {
             }
             logger.warn("TranscriptionError: {}", errorMessage);
             if (!aborted.getAndSet(true)) {
-                sttListener.sttEventReceived(
-                        new SpeechRecognitionErrorEvent(errorMessage != null ? errorMessage : "Unknown error"));
+                sttListener.sttEventReceived(new SpeechRecognitionErrorEvent(config.errorMessage));
             }
         }
 
@@ -327,11 +326,7 @@ public class WatsonSTTService implements STTService {
                 if (!transcript.isBlank()) {
                     sttListener.sttEventReceived(new SpeechRecognitionEvent(transcript, averageConfidence));
                 } else {
-                    if (!config.noResultsMessage.isBlank()) {
-                        sttListener.sttEventReceived(new SpeechRecognitionErrorEvent(config.noResultsMessage));
-                    } else {
-                        sttListener.sttEventReceived(new SpeechRecognitionErrorEvent("No results"));
-                    }
+                    sttListener.sttEventReceived(new SpeechRecognitionErrorEvent(config.noResultsMessage));
                 }
             }
         }

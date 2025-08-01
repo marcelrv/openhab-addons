@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -67,8 +67,8 @@ public class NAThing extends NAObject implements NAModule {
         return radioStatus;
     }
 
-    public Optional<ZonedDateTime> getLastSeen() {
-        return Optional.ofNullable(lastSeen);
+    public @Nullable ZonedDateTime getLastSeen() {
+        return lastSeen;
     }
 
     /**

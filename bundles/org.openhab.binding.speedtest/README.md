@@ -1,7 +1,7 @@
 # Speedtest Binding
 
 The Speedtest Binding can be used to perform a network speed test for your openHAB instance.
-It is based on the command line interface (CLI) version of Ookla's Speedtest (https://www.speedtest.net/apps/cli).
+It is based on the command line interface (CLI) version of Ookla's Speedtest (<https://www.speedtest.net/apps/cli>).
 
 The Ookla CLI Speedtest application MUST be installed on your openHAB instance when using the Speedtest Binding.
 
@@ -37,9 +37,9 @@ The Speedtest Binding provides the Ookla's Speedtest functionality via the follo
 When using this binding, you automatically accept the license and privacy terms of Ookla's Speedtest.
 You can find the latest version of those terms at the following webpages:
 
-- https://www.speedtest.net/about/eula
-- https://www.speedtest.net/about/terms
-- https://www.speedtest.net/about/privacy
+- <https://www.speedtest.net/about/eula>
+- <https://www.speedtest.net/about/terms>
+- <https://www.speedtest.net/about/privacy>
 
 ## Supported Things
 
@@ -50,7 +50,7 @@ Speedtest thing.
 For this binding to work, you MUST install Ookla's Speedtest command line tool (`speedtest` or `speedtest.exe`).
 It will not work with other versions like `speedtest-cli` or other `speedtest` variants.
 
-To install Ookla's version of Speedtest, head to https://www.speedtest.net/apps/cli and follow the instructions for your Operating System.
+To install Ookla's version of Speedtest, head to <https://www.speedtest.net/apps/cli> and follow the instructions for your Operating System.
 
 ## Thing Configuration
 
@@ -89,7 +89,7 @@ Ensure that the user that openHAB is running with, has the permissions to access
 | `interfaceInternalIp` | `String`                  | IP address of the internal interface that was used for the test   |
 | `interfaceExternalIp` | `String`                  | IP address of the external interface that was used for the test   |
 | `resultUrl`           | `String`                  | The URL to the Speedtest results in HTML on the Ookla webserver   |
-| `resultImage`         | `Image `                  | The Speedtest results as image                                    |
+| `resultImage`         | `Image`                   | The Speedtest results as image                                    |
 | `triggerTest`         | `Switch`                  | Trigger in order to run Speedtest manually                        |
 
 ## Full Example
@@ -107,10 +107,10 @@ String                    Speedtest_Server                "Server"              
 DateTime                  Speedtest_Timestamp             "Timestamp"             { channel="speedtest:speedtest:myspeedtest:timestamp" }
 Number:Time               Speedtest_Ping_Jitter           "Ping Jitter"           { channel="speedtest:speedtest:myspeedtest:pingJitter" }
 Number:Time               Speedtest_Ping_Latency          "Ping Latency"          { channel="speedtest:speedtest:myspeedtest:pingLatency" }
-Number:DataTransferRate   Speedtest_Download_Bandwith     "Download Bandwith"     { channel="speedtest:speedtest:myspeedtest:downloadBandwidth" }
+Number:DataTransferRate   Speedtest_Download_Bandwidth    "Download Bandwidth"    { channel="speedtest:speedtest:myspeedtest:downloadBandwidth" }
 Number:DataAmount         Speedtest_Download_Bytes        "Download Bytes"        { channel="speedtest:speedtest:myspeedtest:downloadBytes" }
 Number:Time               Speedtest_Download_Elapsed      "Download Elapsed"      { channel="speedtest:speedtest:myspeedtest:downloadElapsed" }
-Number:DataTransferRate   Speedtest_Upload_Bandwith       "Upload Bandwith"       { channel="speedtest:speedtest:myspeedtest:uploadBandwidth" }
+Number:DataTransferRate   Speedtest_Upload_Bandwidth      "Upload Bandwidth"      { channel="speedtest:speedtest:myspeedtest:uploadBandwidth" }
 Number:DataAmount         Speedtest_Upload_Bytes          "Upload Bytes"          { channel="speedtest:speedtest:myspeedtest:uploadBytes" }
 Number:Time               Speedtest_Upload_Elapsed        "Upload Elapsed"        { channel="speedtest:speedtest:myspeedtest:uploadElapsed" }
 String                    Speedtest_ISP                   "ISP"                   { channel="speedtest:speedtest:myspeedtest:isp" }

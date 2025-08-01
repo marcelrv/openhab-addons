@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -14,6 +14,7 @@ package org.openhab.binding.sensibo.internal;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -44,12 +45,12 @@ public class CallbackChannelsTypeProvider
 
     @Override
     public Collection<ChannelType> getChannelTypes(@Nullable final Locale locale) {
-        return handler.getChannelTypes(locale);
+        return handler != null ? handler.getChannelTypes(locale) : List.of();
     }
 
     @Override
     public @Nullable ChannelType getChannelType(final ChannelTypeUID channelTypeUID, @Nullable final Locale locale) {
-        return handler.getChannelType(channelTypeUID, locale);
+        return handler != null ? handler.getChannelType(channelTypeUID, locale) : null;
     }
 
     @Override

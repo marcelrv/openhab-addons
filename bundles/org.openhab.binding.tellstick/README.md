@@ -8,9 +8,9 @@ All of these 433 MHz devices is one-way, so some versions of the Tellstick monit
 
 The latest versions have also implemented Z-Wave as transmission protocol which open up for more robust transmission due two-ways communication.
 
-![](doc/tellstick_duo.jpg)
+![Tellstick Duo device](doc/tellstick_duo.jpg)
 
-![](doc/znet.jpeg)
+![Tellstick ZNet device](doc/znet.jpeg)
 
 ## Supported Things
 
@@ -87,7 +87,7 @@ Bridge tellstick:telldus-core:1 "Tellstick Duo" [resendInterval=200,libraryPath=
 
 Optional:
 
-- **libraryPath:** The path to tellduscore.dll/so semicolon seperated list of folders.
+- **libraryPath:** The path to tellduscore.dll/so semicolon separated list of folders.
 - **resendInterval:** The interval between each transmission of command in ms, default 100ms.
 
 #### Telldus Live Bridge
@@ -129,6 +129,8 @@ Copy the 'token' returned in Step 3) and use that as accessToken in the local br
 ```java
 Bridge tellstick:telldus-local:3 "Tellstick Local ZWave" [ipAddress="x.y.z.w" , accesToken= "XYZ...W"]
 ```
+
+**NOTE**: This binding does not automatically update the the token, even if 'Auto renew access' is chosen in step 2) above. This has to be done manually at least once a year, as described in the 'Refreshing a token' section in the above page.
 
 Required:
 

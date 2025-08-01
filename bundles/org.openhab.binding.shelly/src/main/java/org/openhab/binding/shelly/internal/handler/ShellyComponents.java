@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -16,6 +16,8 @@ import static org.openhab.binding.shelly.internal.ShellyBindingConstants.*;
 import static org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.*;
 import static org.openhab.binding.shelly.internal.util.ShellyUtils.*;
 
+import java.util.List;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.shelly.internal.api.ShellyApiException;
@@ -24,6 +26,7 @@ import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellyRollerStatus;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsDimmer;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsEMeter;
+import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsLight;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsMeter;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsRelay;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsStatus;
@@ -100,8 +103,9 @@ public class ShellyComponents {
         ShellyDeviceProfile profile = thingHandler.getProfile();
         ShellySettingsRelay relay = status.relays.get(id);
         ShellySettingsRelay rsettings;
-        if (profile.settings.relays != null) {
-            rsettings = profile.settings.relays.get(id);
+        List<ShellySettingsRelay> relays = profile.settings.relays;
+        if (relays != null) {
+            rsettings = relays.get(id);
         } else {
             throw new IllegalArgumentException("No relay settings");
         }
@@ -122,31 +126,6 @@ public class ShellyComponents {
                     updated |= thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_ESENSOR_INPUT1,
                             getOpenClosed(getInteger(status.extSwitch.input0.input) == 1));
                 }
-            }
-            if (status.extTemperature != null) {
-                // Shelly 1/1PM support up to 3 external sensors
-                // for whatever reason those are not represented as an array, but 3 elements
-                updated |= updateTempChannel(status.extTemperature.sensor1, thingHandler, CHANNEL_ESENSOR_TEMP1);
-                updated |= updateTempChannel(status.extTemperature.sensor2, thingHandler, CHANNEL_ESENSOR_TEMP2);
-                updated |= updateTempChannel(status.extTemperature.sensor3, thingHandler, CHANNEL_ESENSOR_TEMP3);
-                updated |= updateTempChannel(status.extTemperature.sensor4, thingHandler, CHANNEL_ESENSOR_TEMP4);
-                updated |= updateTempChannel(status.extTemperature.sensor5, thingHandler, CHANNEL_ESENSOR_TEMP5);
-            }
-            if ((status.extHumidity != null) && (status.extHumidity.sensor1 != null)) {
-                updated |= thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_ESENSOR_HUMIDITY,
-                        toQuantityType(getDouble(status.extHumidity.sensor1.hum), DIGITS_PERCENT, Units.PERCENT));
-            }
-            if ((status.extVoltage != null) && (status.extVoltage.sensor1 != null)) {
-                updated |= thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_ESENSOR_VOLTAGE,
-                        toQuantityType(getDouble(status.extVoltage.sensor1.voltage), 4, Units.VOLT));
-            }
-            if ((status.extDigitalInput != null) && (status.extDigitalInput.sensor1 != null)) {
-                updated |= thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_ESENSOR_DIGITALINPUT,
-                        getOnOff(status.extDigitalInput.sensor1.state));
-            }
-            if ((status.extAnalogInput != null) && (status.extAnalogInput.sensor1 != null)) {
-                updated |= thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_ESENSOR_ANALOGINPUT, toQuantityType(
-                        getDouble(status.extAnalogInput.sensor1.percent), DIGITS_PERCENT, Units.PERCENT));
             }
 
             // Update Auto-ON/OFF timer
@@ -306,6 +285,8 @@ public class ShellyComponents {
                                     toQuantityType(getDouble(emeter.voltage), DIGITS_VOLT, Units.VOLT));
                             updated |= thingHandler.updateChannel(groupName, CHANNEL_EMETER_CURRENT,
                                     toQuantityType(getDouble(emeter.current), DIGITS_AMPERE, Units.AMPERE));
+                            updated |= thingHandler.updateChannel(groupName, CHANNEL_EMETER_FREQUENCY,
+                                    toQuantityType(getDouble(emeter.frequency), DIGITS_FREQUENCY, Units.HERTZ));
                             updated |= thingHandler.updateChannel(groupName, CHANNEL_EMETER_PFACTOR,
                                     toQuantityType(computePF(emeter), Units.PERCENT));
 
@@ -374,6 +355,9 @@ public class ShellyComponents {
                 thingHandler.updateChannel(CHANNEL_GROUP_DEV_STATUS, CHANNEL_DEVST_ACCURETURNED,
                         toQuantityType(status.totalReturned != null ? status.totalReturned / 1000 : accumulatedReturned,
                                 DIGITS_KWH, Units.KILOWATT_HOUR));
+                thingHandler.updateChannel(CHANNEL_GROUP_DEV_STATUS, CHANNEL_DEVST_TOTALKWH, toQuantityType(
+                        status.totalKWH != null ? status.totalKWH / 1000 : 0, DIGITS_KWH, Units.KILOWATT_HOUR));
+
             }
         }
 
@@ -434,8 +418,9 @@ public class ShellyComponents {
                         temp.doubleValue(), getString(sdata.tmp.units));
             } else if (status.thermostats != null) {
                 // Shelly TRV
-                if (profile.settings.thermostats != null) {
-                    ShellyThermnostat ps = profile.settings.thermostats.get(0);
+                List<ShellyThermnostat> thermostats = profile.settings.thermostats;
+                if (thermostats != null) {
+                    ShellyThermnostat ps = thermostats.get(0);
                     ShellyThermnostat t = status.thermostats.get(0);
                     int bminutes = getInteger(t.boostMinutes) >= 0 ? getInteger(t.boostMinutes)
                             : getInteger(ps.boostMinutes);
@@ -556,6 +541,55 @@ public class ShellyComponents {
                 thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_LAST_UPDATE, getTimestamp());
             }
         }
+
+        // Update Add-On channeös
+        if (status.extTemperature != null) {
+            // Shelly 1/1PM support up to 3 external sensors
+            // for whatever reason those are not represented as an array, but 3 elements
+            updated |= updateTempChannel(status.extTemperature.sensor1, thingHandler, CHANNEL_ESENSOR_TEMP1);
+            updated |= updateTempChannel(status.extTemperature.sensor2, thingHandler, CHANNEL_ESENSOR_TEMP2);
+            updated |= updateTempChannel(status.extTemperature.sensor3, thingHandler, CHANNEL_ESENSOR_TEMP3);
+            updated |= updateTempChannel(status.extTemperature.sensor4, thingHandler, CHANNEL_ESENSOR_TEMP4);
+            updated |= updateTempChannel(status.extTemperature.sensor5, thingHandler, CHANNEL_ESENSOR_TEMP5);
+        }
+        if ((status.extHumidity != null) && (status.extHumidity.sensor1 != null)) {
+            updated |= thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_ESENSOR_HUMIDITY,
+                    toQuantityType(getDouble(status.extHumidity.sensor1.hum), DIGITS_PERCENT, Units.PERCENT));
+        }
+        if ((status.extVoltage != null) && (status.extVoltage.sensor1 != null)) {
+            updated |= thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_ESENSOR_VOLTAGE,
+                    toQuantityType(getDouble(status.extVoltage.sensor1.voltage), 4, Units.VOLT));
+        }
+        if ((status.extDigitalInput != null) && (status.extDigitalInput.sensor1 != null)) {
+            updated |= thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_ESENSOR_DIGITALINPUT,
+                    getOnOff(status.extDigitalInput.sensor1.state));
+        }
+        if ((status.extAnalogInput != null) && (status.extAnalogInput.sensor1 != null)) {
+            updated |= thingHandler.updateChannel(CHANNEL_GROUP_SENSOR, CHANNEL_ESENSOR_ANALOGINPUT,
+                    toQuantityType(getDouble(status.extAnalogInput.sensor1.percent), DIGITS_PERCENT, Units.PERCENT));
+        }
+
+        return updated;
+    }
+
+    public static boolean updateRGBW(ShellyThingInterface thingHandler, ShellySettingsStatus orgStatus)
+            throws ShellyApiException {
+        boolean updated = false;
+        ShellyDeviceProfile profile = thingHandler.getProfile();
+        if (profile.isRGBW2) {
+            if (!thingHandler.areChannelsCreated()) {
+                return false;
+            }
+            ShellySettingsLight light = orgStatus.lights.get(0);
+            ShellyColorUtils col = new ShellyColorUtils();
+            col.setRGBW(light.red, light.green, light.blue, light.white);
+            updated |= thingHandler.updateChannel(CHANNEL_GROUP_COLOR_CONTROL, CHANNEL_COLOR_RED, col.percentRed);
+            updated |= thingHandler.updateChannel(CHANNEL_GROUP_COLOR_CONTROL, CHANNEL_COLOR_GREEN, col.percentGreen);
+            updated |= thingHandler.updateChannel(CHANNEL_GROUP_COLOR_CONTROL, CHANNEL_COLOR_BLUE, col.percentBlue);
+            updated |= thingHandler.updateChannel(CHANNEL_GROUP_COLOR_CONTROL, CHANNEL_COLOR_WHITE, col.percentWhite);
+            updated |= thingHandler.updateChannel(CHANNEL_GROUP_COLOR_CONTROL, CHANNEL_COLOR_PICKER, col.toHSB());
+
+        }
         return updated;
     }
 
@@ -583,32 +617,35 @@ public class ShellyComponents {
                             .createDimmerChannels(thingHandler.getThing(), profile, dstatus, l));
                 }
 
-                ShellySettingsDimmer ds = profile.settings.dimmers.get(l);
-                if (ds.name != null) {
-                    updated |= thingHandler.updateChannel(groupName, CHANNEL_OUTPUT_NAME, getStringType(ds.name));
+                List<ShellySettingsDimmer> dimmers = profile.settings.dimmers;
+                if (dimmers != null) {
+                    ShellySettingsDimmer ds = dimmers.get(l);
+                    if (ds.name != null) {
+                        updated |= thingHandler.updateChannel(groupName, CHANNEL_OUTPUT_NAME, getStringType(ds.name));
+                    }
                 }
 
                 // On a status update we map a dimmer.ison = false to brightness 0 rather than the device's brightness
                 // and send an OFF status to the same channel.
                 // When the device's brightness is > 0 we send the new value to the channel and an ON command
-                if (dimmer.ison) {
-                    updated |= thingHandler.updateChannel(groupName, CHANNEL_BRIGHTNESS + "$Switch", OnOffType.ON);
-                    updated |= thingHandler.updateChannel(groupName, CHANNEL_BRIGHTNESS + "$Value",
-                            toQuantityType((double) getInteger(dimmer.brightness), DIGITS_NONE, Units.PERCENT));
-                } else {
-                    updated |= thingHandler.updateChannel(groupName, CHANNEL_BRIGHTNESS + "$Switch", OnOffType.OFF);
-                    updated |= thingHandler.updateChannel(groupName, CHANNEL_BRIGHTNESS + "$Value",
-                            toQuantityType(0.0, DIGITS_NONE, Units.PERCENT));
+                if (dimmer.ison != null) {
+                    if (dimmer.ison) {
+                        updated |= thingHandler.updateChannel(groupName, CHANNEL_BRIGHTNESS + "$Switch", OnOffType.ON);
+                        updated |= thingHandler.updateChannel(groupName, CHANNEL_BRIGHTNESS + "$Value",
+                                toQuantityType((double) getInteger(dimmer.brightness), DIGITS_NONE, Units.PERCENT));
+                    } else {
+                        updated |= thingHandler.updateChannel(groupName, CHANNEL_BRIGHTNESS + "$Switch", OnOffType.OFF);
+                        updated |= thingHandler.updateChannel(groupName, CHANNEL_BRIGHTNESS + "$Value",
+                                toQuantityType(0.0, DIGITS_NONE, Units.PERCENT));
+                    }
                 }
 
-                if (profile.settings.dimmers != null) {
-                    ShellySettingsDimmer dsettings = profile.settings.dimmers.get(l);
-                    if (dsettings != null) {
-                        updated |= thingHandler.updateChannel(groupName, CHANNEL_TIMER_AUTOON,
-                                toQuantityType(getDouble(dsettings.autoOn), Units.SECOND));
-                        updated |= thingHandler.updateChannel(groupName, CHANNEL_TIMER_AUTOOFF,
-                                toQuantityType(getDouble(dsettings.autoOff), Units.SECOND));
-                    }
+                if (dimmers != null) {
+                    ShellySettingsDimmer dsettings = dimmers.get(l);
+                    updated |= thingHandler.updateChannel(groupName, CHANNEL_TIMER_AUTOON,
+                            toQuantityType(getDouble(dsettings.autoOn), Units.SECOND));
+                    updated |= thingHandler.updateChannel(groupName, CHANNEL_TIMER_AUTOOFF,
+                            toQuantityType(getDouble(dsettings.autoOff), Units.SECOND));
                 }
 
                 l++;

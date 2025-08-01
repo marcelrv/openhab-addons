@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -15,6 +15,10 @@ package org.openhab.persistence.mongodb.internal;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -209,7 +213,7 @@ public class DataCreationHelper {
                 Arguments.of(DataCreationHelper.createItem(RollershutterItem.class, "RollershutterItem",
                         new PercentType(30))),
                 Arguments.of(DataCreationHelper.createItem(DateTimeItem.class, "DateTimeItem",
-                        new DateTimeType(ZonedDateTime.now()))),
+                        new DateTimeType(Instant.now()))),
                 Arguments.of(DataCreationHelper.createItem(ColorItem.class, "ColorItem", new HSBType("180,100,100"))),
                 Arguments.of(
                         DataCreationHelper.createItem(LocationItem.class, "LocationItem", new PointType("51.0,0.0"))),
@@ -225,6 +229,26 @@ public class DataCreationHelper {
     }
 
     /**
+     * Checks if the current system supports AVX (Advanced Vector Extensions).
+     * AVX is a set of CPU instructions that can greatly improve performance for certain operations.
+     *
+     * @return true if AVX is supported, false otherwise
+     */
+    public static boolean isAVXSupported() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("/proc/cpuinfo"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.toLowerCase().contains("avx")) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            return false;
+        }
+        return false;
+    }
+
+    /**
      * Provides a stream of arguments to be used for parameterized tests.
      *
      * Each argument is a DatabaseTestContainer instance. Some instances use a MemoryBackend,
@@ -234,7 +258,7 @@ public class DataCreationHelper {
      * @return A stream of Arguments, each containing a DatabaseTestContainer instance.
      */
     public static Stream<Arguments> provideDatabaseBackends() {
-        if (DockerClientFactory.instance().isDockerAvailable()) {
+        if (DockerClientFactory.instance().isDockerAvailable() && isAVXSupported()) {
             // If Docker is available, create a stream of Arguments with all backends
             return Stream.of(
                     // Create a DatabaseTestContainer with a MemoryBackend
@@ -374,7 +398,7 @@ public class DataCreationHelper {
             value = type.toBigDecimal().doubleValue();
         } else if (state instanceof DateTimeType) {
             DateTimeType type = (DateTimeType) state;
-            value = Date.from(type.getZonedDateTime().toInstant());
+            value = Date.from(type.getInstant());
         } else if (state instanceof DecimalType) {
             DecimalType type = (DecimalType) state;
             value = type.toBigDecimal().doubleValue();

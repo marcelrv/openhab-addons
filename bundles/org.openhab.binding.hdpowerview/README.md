@@ -4,10 +4,9 @@ This is an openHAB binding for [Hunter Douglas PowerView](https://www.hunterdoug
 In some countries the PowerView system is sold under the brand name [Luxaflex](https://www.luxaflex.com/).
 
 This binding supports hubs/gateways of all generations.
-Hubs of Generation 1 or 2 are handled commonly and their generation specific features are identified with the *'Generation 1/2 only'* annotation and/or via the <sup>[1/2]</sup> mark.
-Gateways of Generation 3 have generation specific features which are identified with the *'Generation 3 only'* annotation and/or via the <sup>[3]</sup> mark.
+Hubs of Generation 1 or 2 are handled commonly and their generation specific features are identified with the _'Generation 1/2 only'_ annotation and/or via the <sup>[1/2]</sup> mark.
+Gateways of Generation 3 have generation specific features which are identified with the _'Generation 3 only'_ annotation and/or via the <sup>[3]</sup> mark.
 Features that are common to all generations are not annotated or marked.
-
 
 ![PowerView](doc/hdpowerview.png)
 
@@ -323,7 +322,7 @@ Switch Automation_Children_Up_Time "Children Up At 6:30" {channel="hdpowerview:h
 
 ### `demo.sitemap` File
 
-```php
+```perl
 Frame label="Living Room" {
     Switch item=Living_Room_Shades_Scene_Open
     Slider item=Living_Room_Shade_Position

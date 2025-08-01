@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -15,12 +15,12 @@ package org.openhab.persistence.mongodb.internal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.bson.Document;
 import org.bson.json.JsonWriterSettings;
 import org.bson.types.Binary;
@@ -102,7 +102,7 @@ public class VerificationHelper {
         Pair<Object, Object> values = handler.apply(expectedValue, document);
 
         JsonWriterSettings jsonWriterSettings = JsonWriterSettings.builder().indent(true).build();
-        assertEquals(values.getLeft(), values.getRight(),
+        assertEquals(values.left, values.right,
                 "Document: (" + expectedValue.getClass().getSimpleName() + ") " + document.toJson(jsonWriterSettings));
 
         assertNotNull(document.get("_id"));
@@ -177,7 +177,8 @@ public class VerificationHelper {
 
     private static Pair<Object, Object> handleDateTimeType(Object ev, Document doc) {
         String value = doc.getString(MongoDBFields.FIELD_VALUE);
-        return Pair.of(((DateTimeType) ev).getZonedDateTime().toString(), value != null ? value : new Object());
+        return Pair.of(((DateTimeType) ev).getZonedDateTime(ZoneId.systemDefault()).toString(),
+                value != null ? value : new Object());
     }
 
     private static Pair<Object, Object> handlePercentType(Object ev, Document doc) {
@@ -202,5 +203,11 @@ public class VerificationHelper {
         expectedDoc.put(MongoDBFields.FIELD_VALUE_DATA, new Binary(rawType.getBytes()));
         Object value = doc.get(MongoDBFields.FIELD_VALUE);
         return Pair.of(expectedDoc, value != null ? value : new Object());
+    }
+
+    public record Pair<L, R> (L left, R right) {
+        public static <L, R> Pair<L, R> of(final L left, final R right) {
+            return left != null || right != null ? new Pair<>(left, right) : new Pair<>(null, null);
+        }
     }
 }

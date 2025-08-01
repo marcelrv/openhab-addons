@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -26,7 +26,7 @@ public class ForecastSolarPlaneConfiguration {
     public int azimuth = -1;
     public double kwp = 0;
     public long refreshInterval = 30;
-    public double dampAM = 0.25;
-    public double dampPM = 0.25;
+    public double dampAM = 0;
+    public double dampPM = 0;
     public String horizon = SolarForecastBindingConstants.EMPTY;
 }

@@ -4,15 +4,15 @@ This binding can read information from multiple PLEX players connected to a PLEX
 
 It can be used for multiple scenarios:
 
-* Drive light changes based on player status. For instances turn off the lights when movie starts playing and turn them back on when movie is stopped/paused
-* Create a page that displays currently played media of one or more player connected to the server.
-* Send social media messages when player plays new media
-* Inform what the end time of the currently played media is
+- Drive light changes based on player status. For instances turn off the lights when movie starts playing and turn them back on when movie is stopped/paused
+- Create a page that displays currently played media of one or more player connected to the server.
+- Send social media messages when player plays new media
+- Inform what the end time of the currently played media is
 
 The binding can also control `PLAY/PAUSE/NEXT/PREVIOUS` the players which can be used for:
 
-* Start playing some music when someone enters a room
-* Pause the movie when motion is detected
+- Start playing some music when someone enters a room
+- Pause the movie when motion is detected
 
 ## Supported Things
 
@@ -24,17 +24,17 @@ This binding supports 2 things.
 ## Discovery
 
 For the auto discovery to work correctly you first need to configure and add the `PLEX Server` Thing.
-Next step is to *PLAY* something on the desired player. Only when media is played on the player it will show up in the auto discovery!
+Next step is to _PLAY_ something on the desired player. Only when media is played on the player it will show up in the auto discovery!
 
 ## Thing Configuration
 
 The PLEX Server needs to be configured first. The hostname of the PLEX server is mandatory and the either the PLEX token (recommended) or the username/password of the PLEX server (not recommended).
 
-Then find the PLEX token please follow the instructions from the PLEX support forum: 
+Then find the PLEX token please follow the instructions from the PLEX support forum:
 
 1. Sign in to your Plex account in Plex Web App
-2. Browse to a library item and view the XML for it
-3. Look in the URL and find the token as the X-Plex-Token value
+1. Browse to a library item and view the XML for it
+1. Look in the URL and find the token as the X-Plex-Token value
 
 ### `PLEX Server` Thing Configuration
 
@@ -53,8 +53,8 @@ You can add multiple PLEX players. You can choose to find the player by autodisc
 
 #### Autodiscovery
 
-Turn on the player you want to add and *play* some media on it. Navigate to `/settings/things/add/plex` and start the auto discover.
-The player will be found and you can add it. 
+Turn on the player you want to add and _play_ some media on it. Navigate to `/settings/things/add/plex` and start the auto discover.
+The player will be found and you can add it.
 
 #### Manual adding a player Thing
 
@@ -118,6 +118,7 @@ The PLEX Player supports the following channels:
 | ratingKey            | String   | RO         | The unique key in the Plex library identifying the media that is playing                                         |
 | parentRatingKey      | String   | RO         | The unique key in the Plex library identifying the parent (TV show season or album) of the media that is playing |
 | grandparentRatingKey | String   | RO         | The unique key in the Plex library identifying the grandparent (TV show) of the media that is playing            |
+| user                 | String   | RO         | The user title                                                          |
 
 ## Full Example
 

@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -19,7 +19,6 @@ import static org.openhab.binding.tapocontrol.internal.helpers.utils.JsonUtils.*
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.Request;
 import org.openhab.binding.tapocontrol.internal.api.protocol.passthrough.PassthroughProtocol;
 import org.openhab.binding.tapocontrol.internal.devices.bridge.TapoBridgeHandler;
 import org.openhab.binding.tapocontrol.internal.devices.bridge.dto.TapoCloudLoginData;
@@ -184,14 +183,5 @@ public class TapoCloudConnector implements TapoConnectorInterface {
             url = url + "?token=" + token;
         }
         return url;
-    }
-
-    /**
-     * Set http-headers
-     */
-    public Request setHeaders(Request httpRequest) {
-        httpRequest.header("content-type", CONTENT_TYPE_JSON);
-        httpRequest.header("Accept", CONTENT_TYPE_JSON);
-        return httpRequest;
     }
 }

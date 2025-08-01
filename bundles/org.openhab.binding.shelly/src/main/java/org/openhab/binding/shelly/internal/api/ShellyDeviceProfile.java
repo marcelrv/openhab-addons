@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -18,6 +18,7 @@ import static org.openhab.binding.shelly.internal.discovery.ShellyThingCreator.*
 import static org.openhab.binding.shelly.internal.util.ShellyUtils.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,7 +33,9 @@ import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettings
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsRgbwLight;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsStatus;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellyThermnostat;
+import org.openhab.binding.shelly.internal.discovery.ShellyThingCreator;
 import org.openhab.binding.shelly.internal.util.ShellyVersionDTO;
+import org.openhab.core.thing.ThingTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,11 +80,12 @@ public class ShellyDeviceProfile {
     public int numRelays = 0; // number of relays/outputs
     public int numRollers = 0; // number of Rollers, usually 1
     public boolean isRoller = false; // true for Shelly2 in roller mode
-    public boolean isDimmer = false; // true for a Shelly Dimmer (SHDM-1)
+    public boolean isDimmer = false; // true for a Shelly Dimmer
     public int numInputs = 0; // number of inputs
 
     public int numMeters = 0;
     public boolean isEMeter = false; // true for ShellyEM/3EM
+    public boolean isCB = false; // true for Shelly Pro CB
 
     public boolean isLight = false; // true if it is a Shelly Bulb/RGBW2
     public boolean isBulb = false; // true only if it is a Bulb
@@ -115,15 +119,13 @@ public class ShellyDeviceProfile {
     public ShellyDeviceProfile() {
     }
 
-    public ShellyDeviceProfile initialize(String thingType, String jsonIn, @Nullable ShellySettingsDevice device)
+    public ShellyDeviceProfile initialize(ThingTypeUID thingTypeUID, String jsonIn, ShellySettingsDevice device)
             throws ShellyApiException {
         Gson gson = new Gson();
         initialized = false;
-        if (device != null) {
-            this.device = device;
-        }
+        this.device = device;
 
-        initFromThingType(thingType);
+        initFromThingType(thingTypeUID);
 
         String json = jsonIn;
         // It is not guaranteed, that the array entries are in order. Check all
@@ -158,14 +160,14 @@ public class ShellyDeviceProfile {
         String mode = getString(device.mode);
         isRoller = mode.equalsIgnoreCase(SHELLY_MODE_ROLLER);
         inColor = isLight && mode.equalsIgnoreCase(SHELLY_MODE_COLOR);
-
         numRelays = !isLight ? getInteger(device.numOutputs) : 0;
         if ((numRelays > 0) && (settings.relays == null)) {
             numRelays = 0;
         }
         hasRelays = (numRelays > 0) || isDimmer;
         numRollers = getInteger(device.numRollers);
-        numInputs = settings.inputs != null ? settings.inputs.size() : hasRelays ? isRoller ? 2 : 1 : 0;
+        List<ShellySettingsInput> inputs = settings.inputs;
+        numInputs = inputs != null ? inputs.size() : hasRelays ? isRoller ? 2 : 1 : 0;
 
         isEMeter = settings.emeters != null;
         numMeters = !isEMeter ? getInteger(device.numMeters) : getInteger(device.numEMeters);
@@ -191,53 +193,51 @@ public class ShellyDeviceProfile {
         return initialized;
     }
 
-    public void initFromThingType(String name) {
-        String thingType = (name.contains("-") ? substringBefore(name, "-") : name).toLowerCase().trim();
-        if (thingType.isEmpty()) {
-            return;
-        }
-
-        isGen2 = isGeneration2(thingType);
-        isBlu = isBluSeries(thingType); // e.g. SBBT for BLU Button
+    public void initFromThingType(ThingTypeUID thingTypeUID) {
+        isBlu = isBluSeries(thingTypeUID); // e.g. SBBT for BLU Button
+        isGen2 = isGeneration2(thingTypeUID);
 
         String type = getString(device.type);
         isDimmer = type.equalsIgnoreCase(SHELLYDT_DIMMER) || type.equalsIgnoreCase(SHELLYDT_DIMMER2)
-                || type.equalsIgnoreCase(SHELLYDT_PLUSDIMMERUS)
-                || thingType.equalsIgnoreCase(THING_TYPE_SHELLYPLUSDIMMERUS_STR);
-        isBulb = thingType.equals(THING_TYPE_SHELLYBULB_STR);
-        isDuo = thingType.equals(THING_TYPE_SHELLYDUO_STR) || thingType.equals(THING_TYPE_SHELLYVINTAGE_STR)
-                || thingType.equals(THING_TYPE_SHELLYDUORGBW_STR);
-        isRGBW2 = thingType.startsWith(THING_TYPE_SHELLYRGBW2_PREFIX);
+                || type.equalsIgnoreCase(SHELLYDT_PLUSDIMMERUS) || THING_TYPE_SHELLYPLUSDIMMERUS.equals(thingTypeUID)
+                || THING_TYPE_SHELLYPLUSDIMMER10V.equals(thingTypeUID)
+                || THING_TYPE_SHELLYPLUSDIMMER.equals(thingTypeUID);
+        isBulb = THING_TYPE_SHELLYBULB.equals(thingTypeUID);
+        isDuo = THING_TYPE_SHELLYDUO.equals(thingTypeUID) || THING_TYPE_SHELLYVINTAGE.equals(thingTypeUID)
+                || THING_TYPE_SHELLYDUORGBW.equals(thingTypeUID);
+        isRGBW2 = THING_TYPE_SHELLYRGBW2_COLOR.equals(thingTypeUID) || THING_TYPE_SHELLYRGBW2_WHITE.equals(thingTypeUID)
+                || THING_TYPE_SHELLYPLUSRGBWPM.equals(thingTypeUID);
         isLight = isBulb || isDuo || isRGBW2;
         if (isLight) {
             minTemp = isBulb ? MIN_COLOR_TEMP_BULB : MIN_COLOR_TEMP_DUO;
             maxTemp = isBulb ? MAX_COLOR_TEMP_BULB : MAX_COLOR_TEMP_DUO;
         }
 
-        boolean isFlood = thingType.equals(THING_TYPE_SHELLYFLOOD_STR);
-        isSmoke = thingType.equals(THING_TYPE_SHELLYSMOKE_STR) || thingType.equals(THING_TYPE_SHELLYPLUSSMOKE_STR);
-        boolean isGas = thingType.equals(THING_TYPE_SHELLYGAS_STR);
-        boolean isUNI = thingType.equals(THING_TYPE_SHELLYUNI_STR);
-        isHT = thingType.equals(THING_TYPE_SHELLYHT_STR) || thingType.equals(THING_TYPE_SHELLYPLUSHT_STR)
-                || thingType.equals(THING_TYPE_SHELLYBLUHT_STR);
-        isDW = thingType.equals(THING_TYPE_SHELLYDOORWIN_STR) || thingType.equals(THING_TYPE_SHELLYDOORWIN2_STR)
-                || thingType.equals(THING_TYPE_SHELLYBLUDW_STR);
-        isMotion = thingType.startsWith(THING_TYPE_SHELLYMOTION_STR)
-                || thingType.equals(THING_TYPE_SHELLYBLUMOTION_STR);
-        isSense = thingType.equals(THING_TYPE_SHELLYSENSE_STR);
-        isIX = thingType.equals(THING_TYPE_SHELLYIX3_STR) || thingType.equals(THING_TYPE_SHELLYPLUSI4_STR)
-                || thingType.equals(THING_TYPE_SHELLYPLUSI4DC_STR);
-        isButton = thingType.equals(THING_TYPE_SHELLYBUTTON1_STR) || thingType.equals(THING_TYPE_SHELLYBUTTON2_STR)
-                || thingType.equals(THING_TYPE_SHELLYBLUBUTTON_STR);
-        isTRV = thingType.equals(THING_TYPE_SHELLYTRV_STR);
-        isWall = thingType.equals(THING_TYPE_SHELLYPLUSWALLDISPLAY_STR);
-        is3EM = thingType.equals(THING_TYPE_SHELLY3EM_STR) || thingType.startsWith(THING_TYPE_SHELLYPRO3EM_STR);
-        isEM50 = thingType.startsWith(THING_TYPE_SHELLYPROEM50_STR);
+        boolean isFlood = THING_TYPE_SHELLYFLOOD.equals(thingTypeUID);
+        isSmoke = THING_TYPE_SHELLYSMOKE.equals(thingTypeUID) || THING_TYPE_SHELLYPLUSSMOKE.equals(thingTypeUID);
+        boolean isGas = THING_TYPE_SHELLYGAS.equals(thingTypeUID);
+        boolean isUNI = THING_TYPE_SHELLYUNI.equals(thingTypeUID) || THING_TYPE_SHELLYPLUSUNI.equals(thingTypeUID);
+        isHT = THING_TYPE_SHELLYHT.equals(thingTypeUID) || THING_TYPE_SHELLYPLUSHT.equals(thingTypeUID)
+                || THING_TYPE_SHELLYBLUHT.equals(thingTypeUID);
+        isDW = THING_TYPE_SHELLYDOORWIN.equals(thingTypeUID) || THING_TYPE_SHELLYDOORWIN2.equals(thingTypeUID)
+                || THING_TYPE_SHELLYBLUDW.equals(thingTypeUID);
+        isMotion = THING_TYPE_SHELLYMOTION.equals(thingTypeUID) || THING_TYPE_SHELLYBLUMOTION.equals(thingTypeUID);
+        isSense = THING_TYPE_SHELLYSENSE.equals(thingTypeUID);
+        isIX = THING_TYPE_SHELLYIX3.equals(thingTypeUID) || THING_TYPE_SHELLYPLUSI4.equals(thingTypeUID)
+                || THING_TYPE_SHELLYPLUSI4DC.equals(thingTypeUID);
+        isButton = THING_TYPE_SHELLYBUTTON1.equals(thingTypeUID) || THING_TYPE_SHELLYBUTTON2.equals(thingTypeUID)
+                || THING_TYPE_SHELLYBLUBUTTON.equals(thingTypeUID);
+        isTRV = THING_TYPE_SHELLYTRV.equals(thingTypeUID);
+        isWall = THING_TYPE_SHELLYPLUSWALLDISPLAY.equals(thingTypeUID);
+        is3EM = THING_TYPE_SHELLY3EM.equals(thingTypeUID) || THING_TYPE_SHELLYPRO3EM.equals(thingTypeUID)
+                || THING_TYPE_SHELLYPLUSEM.equals(thingTypeUID) || THING_TYPE_SHELLYPLUS3EM63.equals(thingTypeUID);
+        isEM50 = THING_TYPE_SHELLYPROEM50.equals(thingTypeUID);
 
         isSensor = isHT || isFlood || isDW || isSmoke || isGas || isButton || isUNI || isMotion || isSense || isTRV
                 || isWall;
-        hasBattery = isHT || isFlood || isDW || isSmoke || isButton || isMotion || isTRV;
-        alwaysOn = !hasBattery || isMotion || isSense; // true means: device is reachable all the time (no sleep mode)
+        hasBattery = isHT || isFlood || isDW || isSmoke || isButton || isMotion || isTRV || isBlu;
+        alwaysOn = !hasBattery || (isMotion && !isBlu) || isSense; // true means: device is reachable all the time (no
+                                                                   // sleep mode)
     }
 
     public void updateFromStatus(ShellySettingsStatus status) {
@@ -262,13 +262,11 @@ public class ShellyDeviceProfile {
             return CHANNEL_GROUP_DIMMER_CONTROL;
         } else if (isRoller) {
             return numRollers <= 1 ? CHANNEL_GROUP_ROL_CONTROL : CHANNEL_GROUP_ROL_CONTROL + idx;
-        } else if (isDimmer) {
-            return CHANNEL_GROUP_RELAY_CONTROL;
         } else if (hasRelays) {
             return numRelays <= 1 ? CHANNEL_GROUP_RELAY_CONTROL : CHANNEL_GROUP_RELAY_CONTROL + idx;
         } else if (isRGBW2) {
-            return settings.lights == null || settings.lights != null && settings.lights.size() <= 1
-                    ? CHANNEL_GROUP_LIGHT_CONTROL
+            List<ShellySettingsRgbwLight> lights = settings.lights;
+            return lights == null || lights.size() <= 1 ? CHANNEL_GROUP_LIGHT_CONTROL
                     : CHANNEL_GROUP_LIGHT_CHANNEL + idx;
         } else if (isLight) {
             return CHANNEL_GROUP_LIGHT_CONTROL;
@@ -308,6 +306,7 @@ public class ShellyDeviceProfile {
             return ""; // RGBW2 has only 1 channel
         } else if (isRoller || isDimmer) {
             // Roller has 2 relays, but it will be mapped to 1 roller with 2 inputs
+            // Dimmer has up to 2 inputs to control light
             return String.valueOf(idx);
         } else if (hasRelays) {
             return numRelays == 1 && numInputs >= 2 ? String.valueOf(idx) : "";
@@ -315,40 +314,43 @@ public class ShellyDeviceProfile {
         return "";
     }
 
-    @SuppressWarnings("null")
     public boolean inButtonMode(int idx) {
         if (idx < 0) {
             logger.debug("{}: Invalid index {} for inButtonMode()", thingName, idx);
             return false;
         }
         String btnType = "";
+        List<ShellySettingsInput> inputs = settings.inputs;
+        List<ShellySettingsDimmer> dimmers = settings.dimmers;
+        List<ShellySettingsRelay> relays = settings.relays;
+        List<ShellySettingsRgbwLight> lights = settings.lights;
         if (isButton) {
             return true;
-        } else if (isIX && settings.inputs != null && idx < settings.inputs.size()) {
-            ShellySettingsInput input = settings.inputs.get(idx);
+        } else if (isIX && inputs != null && idx < inputs.size()) {
+            ShellySettingsInput input = inputs.get(idx);
             btnType = getString(input.btnType);
         } else if (isDimmer) {
-            if (settings.dimmers != null) {
-                ShellySettingsDimmer dimmer = settings.dimmers.get(0);
-                btnType = dimmer.btnType;
+            if (dimmers != null) {
+                ShellySettingsDimmer dimmer = dimmers.get(0);
+                btnType = getString(dimmer.btnType);
             }
-        } else if (settings.relays != null) {
+        } else if (relays != null) {
             if (numRelays == 1) {
-                ShellySettingsRelay relay = settings.relays.get(0);
+                ShellySettingsRelay relay = relays.get(0);
                 if (relay.btnType != null) {
                     btnType = getString(relay.btnType);
                 } else {
                     // Shelly 1L has 2 inputs
                     btnType = idx == 0 ? getString(relay.btnType1) : getString(relay.btnType2);
                 }
-            } else if (idx < settings.relays.size()) {
+            } else if (idx < relays.size()) {
                 // only one input channel
-                ShellySettingsRelay relay = settings.relays.get(idx);
+                ShellySettingsRelay relay = relays.get(idx);
                 btnType = getString(relay.btnType);
             }
-        } else if (isRGBW2 && (settings.lights != null) && (idx < settings.lights.size())) {
-            ShellySettingsRgbwLight light = settings.lights.get(idx);
-            btnType = light.btnType;
+        } else if (isRGBW2 && lights != null && idx < lights.size()) {
+            ShellySettingsRgbwLight light = lights.get(idx);
+            btnType = getString(light.btnType);
         }
 
         return btnType.equalsIgnoreCase(SHELLY_BTNT_MOMENTARY) || btnType.equalsIgnoreCase(SHELLY_BTNT_MOM_ON_RELEASE)
@@ -365,13 +367,12 @@ public class ShellyDeviceProfile {
     }
 
     public String[] getValveProfileList(int valveId) {
-        if (isTRV && settings.thermostats != null) {
-            int sz = settings.thermostats.size();
+        List<ShellyThermnostat> thermostats = settings.thermostats;
+        if (isTRV && thermostats != null) {
+            int sz = thermostats.size();
             if (valveId <= sz) {
-                if (settings.thermostats != null) {
-                    ShellyThermnostat t = settings.thermostats.get(valveId);
-                    return t.profileNames;
-                }
+                ShellyThermnostat t = thermostats.get(valveId);
+                return t.profileNames;
             }
         }
         return new String[0];
@@ -379,8 +380,9 @@ public class ShellyDeviceProfile {
 
     public String getValueProfile(int valveId, int profileId) {
         int id = profileId;
-        if (id <= 0 && settings.thermostats != null) {
-            id = settings.thermostats.get(0).profile;
+        List<ShellyThermnostat> thermostats = settings.thermostats;
+        if (id <= 0 && thermostats != null) {
+            id = thermostats.get(0).profile;
         }
         return "" + id;
     }
@@ -403,13 +405,21 @@ public class ShellyDeviceProfile {
         return "";
     }
 
-    public static boolean isGeneration2(String thingType) {
-        return thingType.startsWith("shellyplus") || thingType.startsWith("shellypro") || thingType.contains("mini")
-                || isBluSeries(thingType);
+    public static boolean isGeneration2(String serviceName) {
+        return (serviceName.startsWith("shelly") && (serviceName.contains("g3") || serviceName.contains("g4")))
+                || isGeneration2(ShellyThingCreator.getThingTypeUID(serviceName));
     }
 
-    public static boolean isBluSeries(String thingType) {
-        return thingType.startsWith("shellyblu") && !thingType.startsWith(THING_TYPE_SHELLYBLUGW_STR);
+    public static boolean isGeneration2(ThingTypeUID thingTypeUID) {
+        String thingTypeID = thingTypeUID.getId();
+        return thingTypeID.startsWith(THING_TYPE_SHELLYPLUS_PREFIX)
+                || thingTypeID.startsWith(THING_TYPE_SHELLYPRO_PREFIX) || thingTypeID.contains("mini")
+                || THING_TYPE_SHELLYPLUSWALLDISPLAY.equals(thingTypeUID)
+                || isBluSeries(thingTypeUID) | isBluSeries(thingTypeUID) || THING_TYPE_SHELLYBLUGW.equals(thingTypeUID);
+    }
+
+    public static boolean isBluSeries(ThingTypeUID thingTypeUID) {
+        return BLU_SENSOR_THING_TYPES.contains(thingTypeUID) && !THING_TYPE_SHELLYBLUGW.equals(thingTypeUID);
     }
 
     public boolean coiotEnabled() {
@@ -421,19 +431,22 @@ public class ShellyDeviceProfile {
         return true;
     }
 
+    /**
+     * Generates a service name based on the provided model name and MAC address.
+     * Delimiters will be stripped from the returned MAC address.
+     *
+     * @param name Model name such as SBBT-02C or just SBDW
+     * @param mac MAC address with or without colon delimiters
+     * @return service name in the form <code>&lt;service name&gt;-&lt;mac&gt;</code>
+     */
     public static String buildBluServiceName(String name, String mac) throws IllegalArgumentException {
         String model = name.contains("-") ? substringBefore(name, "-") : name; // e.g. SBBT-02C or just SBDW
-        switch (model) {
-            case SHELLYDT_BLUBUTTON:
-                return (THING_TYPE_SHELLYBLUBUTTON_STR + "-" + mac).toLowerCase();
-            case SHELLYDT_BLUDW:
-                return (THING_TYPE_SHELLYBLUDW_STR + "-" + mac).toLowerCase();
-            case SHELLYDT_BLUMOTION:
-                return (THING_TYPE_SHELLYBLUMOTION_STR + "-" + mac).toLowerCase();
-            case SHELLYDT_BLUHT:
-                return (THING_TYPE_SHELLYBLUHT_STR + "-" + mac).toLowerCase();
-            default:
-                throw new IllegalArgumentException("Unsupported BLU device model " + model);
-        }
+        return SERVICE_NAME_SHELLYBLU_PREFIX + switch (model) {
+            case SHELLYDT_BLUBUTTON -> "button";
+            case SHELLYDT_BLUDW -> "dw";
+            case SHELLYDT_BLUMOTION -> "motion";
+            case SHELLYDT_BLUHT -> "ht";
+            default -> throw new IllegalArgumentException("Unsupported BLU device model " + model);
+        } + "-" + mac.replaceAll(":", "").toLowerCase();
     }
 }

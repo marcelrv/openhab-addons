@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -15,7 +15,6 @@ package org.openhab.binding.netatmo.internal.utils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.ZonedDateTime;
-import java.util.Optional;
 
 import javax.measure.Unit;
 
@@ -69,10 +68,6 @@ public class ChannelTypeUtils {
 
     public static State toDateTimeType(@Nullable ZonedDateTime zonedDateTime) {
         return (zonedDateTime == null) ? UnDefType.NULL : new DateTimeType(zonedDateTime);
-    }
-
-    public static State toDateTimeType(Optional<ZonedDateTime> zonedDateTime) {
-        return zonedDateTime.map(zdt -> (State) new DateTimeType(zdt)).orElse(UnDefType.NULL);
     }
 
     public static State toQuantityType(@Nullable Double value, MeasureClass measureClass) {

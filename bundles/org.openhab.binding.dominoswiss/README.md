@@ -29,7 +29,7 @@ Bridge dominoswiss:egate:myeGate "My eGate Server" @ "Home" [ ipAddres="localhos
 ```
 
 The thing blind represents one blind on the eGate. Each blind is represented by an id set on your eGate.
-  
+
 ```java
 Thing blind officeBlind "Office" @ "1stFloor" [ id="1"]
 ```
@@ -45,8 +45,8 @@ The blind-Thing has the following channels:
 |stop|Rollershutter|stop the action of the blind. The command will be imadiatly sent to the blind.|
 |shutter|Rollershutter|this is used to bind the channel to the shutter item. There are no further rules needed this channel will handel the up/down/stop commands. See example for usage.|
 |tilt|Rollershutter|same as shutter, this will handel all up/down/stop - tilt commands to be used with the shutter-item.|
-|tiltUp|Rollershutter|sends 3 pulse-up commands to this blind to tilt the blind. If your blind needs more than 3 pulse-up, create a rule yourself with three pluse-up commands. Between each pulse-up you should wait 150ms to let the command be processed.
-|tiltDown|Rollershutter|sends 3 pulse-down commands to this blind to tilt the blind. If your blind needs more than 3 pulse-down, create a rule yourself with three pluse-down commands. Between each pulse-down you should wait 150ms to let the command be processed. |
+|tiltUp|Rollershutter|sends 3 pulse-up commands to this blind to tilt the blind. If your blind needs more than 3 pulse-up, create a rule yourself with three pulse-up commands. Between each pulse-up you should wait 150ms to let the command be processed.|
+|tiltDown|Rollershutter|sends 3 pulse-down commands to this blind to tilt the blind. If your blind needs more than 3 pulse-down, create a rule yourself with three pulse-down commands. Between each pulse-down you should wait 150ms to let the command be processed. |
 
 ## Full Example
 
@@ -83,9 +83,9 @@ This example moves the blind of the office up as the sun passed 110 azimuth (so 
 
 ```java
 rule "OneSide up"
-when 
-    Item Azimuth changed 
-then 
+when
+    Item Azimuth changed
+then
     val azimuth = Math::round((Azimuth.state as DecimalType).intValue)
     if (azimuth == 110)
     {

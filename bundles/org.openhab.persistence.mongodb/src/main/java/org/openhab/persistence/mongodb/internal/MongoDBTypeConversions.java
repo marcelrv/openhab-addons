@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -26,6 +26,7 @@ import org.bson.types.Binary;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.items.GenericItem;
+import org.openhab.core.items.GroupItem;
 import org.openhab.core.items.Item;
 import org.openhab.core.library.items.CallItem;
 import org.openhab.core.library.items.ColorItem;
@@ -77,11 +78,12 @@ public class MongoDBTypeConversions {
      * @throws IllegalArgumentException If the item type is not supported.
      */
     public static State getStateFromDocument(Item item, Document doc) {
-        BiFunction<Item, Document, State> converter = ITEM_STATE_CONVERTERS.get(item.getClass());
+        Item realItem = item instanceof GroupItem groupItem ? groupItem.getBaseItem() : item;
+        BiFunction<Item, Document, State> converter = ITEM_STATE_CONVERTERS.get(realItem.getClass());
         if (converter != null) {
-            return converter.apply(item, doc);
+            return converter.apply(realItem, doc);
         } else {
-            throw new IllegalArgumentException("Unsupported item type: " + item.getClass().getName());
+            throw new IllegalArgumentException("Unsupported item type: " + realItem.getClass().getName());
         }
     }
 
@@ -113,7 +115,7 @@ public class MongoDBTypeConversions {
         return STATE_CONVERTERS.getOrDefault(state.getClass(), State::toString).apply(state);
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(MongoDBTypeConversions.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBTypeConversions.class);
 
     /**
      * A map of converters that convert openHAB states to MongoDB compatible types.
@@ -123,7 +125,7 @@ public class MongoDBTypeConversions {
             HSBType.class, State::toString, //
             QuantityType.class, state -> ((QuantityType<?>) state).toBigDecimal().doubleValue(), //
             PercentType.class, state -> ((PercentType) state).intValue(), //
-            DateTimeType.class, state -> ((DateTimeType) state).getZonedDateTime().toString(), //
+            DateTimeType.class, state -> ((DateTimeType) state).getZonedDateTime(ZoneId.systemDefault()).toString(), //
             StringListType.class, State::toString, //
             DecimalType.class, state -> ((DecimalType) state).toBigDecimal().doubleValue(), //
             RawType.class, MongoDBTypeConversions::handleRawType//
@@ -197,7 +199,7 @@ public class MongoDBTypeConversions {
         if (value instanceof String) {
             return new HSBType(value.toString());
         } else {
-            logger.warn("HSBType ({}) value is not a valid string: {}", doc.getString(MongoDBFields.FIELD_REALNAME),
+            LOGGER.warn("HSBType ({}) value is not a valid string: {}", doc.getString(MongoDBFields.FIELD_REALNAME),
                     value);
             return new HSBType("0,0,0");
         }
@@ -235,7 +237,7 @@ public class MongoDBTypeConversions {
         if (value instanceof String) {
             return new DateTimeType(ZonedDateTime.parse(doc.getString(MongoDBFields.FIELD_VALUE)));
         } else {
-            return new DateTimeType(ZonedDateTime.ofInstant(((Date) value).toInstant(), ZoneId.systemDefault()));
+            return new DateTimeType(((Date) value).toInstant());
         }
     }
 
@@ -247,7 +249,7 @@ public class MongoDBTypeConversions {
             Binary data = fieldValue.get(MongoDBFields.FIELD_VALUE_DATA, Binary.class);
             return new RawType(data.getData(), type);
         } else {
-            logger.warn("ImageItem ({}) value is not a Document: {}", doc.getString(MongoDBFields.FIELD_REALNAME),
+            LOGGER.warn("ImageItem ({}) value is not a Document: {}", doc.getString(MongoDBFields.FIELD_REALNAME),
                     value);
             return new RawType(new byte[0], "application/octet-stream");
         }

@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -19,6 +19,7 @@ import static org.openhab.binding.shelly.internal.util.ShellyUtils.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -33,6 +34,7 @@ import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellyRollerSt
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySendKeyList;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySenseKeyCode;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsDevice;
+import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsDimmer;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsLight;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsLogin;
 import org.openhab.binding.shelly.internal.api1.Shelly1ApiJsonDTO.ShellySettingsStatus;
@@ -46,6 +48,7 @@ import org.openhab.binding.shelly.internal.config.ShellyThingConfiguration;
 import org.openhab.binding.shelly.internal.handler.ShellyThingInterface;
 import org.openhab.core.library.unit.ImperialUnits;
 import org.openhab.core.library.unit.SIUnits;
+import org.openhab.core.thing.ThingTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +56,7 @@ import com.google.gson.JsonSyntaxException;
 
 /**
  * {@link Shelly1HttpApi} wraps the Shelly REST API and provides various low level function to access the device api
- * (not
- * cloud api).
+ * (not cloud api).
  *
  * @author Markus Michels - Initial contribution
  */
@@ -121,7 +123,7 @@ public class Shelly1HttpApi extends ShellyHttpClient implements ShellyApiInterfa
      * @throws ShellyApiException
      */
     @Override
-    public ShellyDeviceProfile getDeviceProfile(String thingType, @Nullable ShellySettingsDevice device)
+    public ShellyDeviceProfile getDeviceProfile(ThingTypeUID thingTypeUID, @Nullable ShellySettingsDevice device)
             throws ShellyApiException {
         if (device != null) {
             profile.device = device;
@@ -136,7 +138,7 @@ public class Shelly1HttpApi extends ShellyHttpClient implements ShellyApiInterfa
         }
 
         // Map settings to device profile for Light and Sense
-        profile.initialize(thingType, json, profile.device);
+        profile.initialize(thingTypeUID, json, profile.device);
 
         // 2nd level initialization
         profile.thingName = profile.device.hostname;
@@ -272,15 +274,16 @@ public class Shelly1HttpApi extends ShellyHttpClient implements ShellyApiInterfa
     }
 
     @Override
-    public void setValveTemperature(int valveId, int value) throws ShellyApiException {
+    public void setValveTemperature(int valveId, double value) throws ShellyApiException {
         httpRequest("/thermostat/" + valveId + "?target_t_enabled=1&target_t=" + value);
     }
 
     @Override
     public void setValveMode(int valveId, boolean auto) throws ShellyApiException {
         String uri = "/settings/thermostat/" + valveId + "?target_t_enabled=" + (auto ? "1" : "0");
-        if (auto && profile.settings.thermostats != null) {
-            uri = uri + "&target_t=" + getDouble(profile.settings.thermostats.get(0).targetTemp.value);
+        List<ShellyThermnostat> thermostats = profile.settings.thermostats;
+        if (auto && thermostats != null) {
+            uri = uri + "&target_t=" + getDouble(thermostats.get(0).targetTemp.value);
         }
         httpRequest(uri); // percentage to open the valve
     }
@@ -303,8 +306,9 @@ public class Shelly1HttpApi extends ShellyHttpClient implements ShellyApiInterfa
 
     @Override
     public void startValveBoost(int valveId, int value) throws ShellyApiException {
-        if (profile.settings.thermostats != null) {
-            ShellyThermnostat t = profile.settings.thermostats.get(0);
+        List<ShellyThermnostat> thermostats = profile.settings.thermostats;
+        if (thermostats != null) {
+            ShellyThermnostat t = thermostats.get(0);
             int minutes = value != -1 ? value : getInteger(t.boostMinutes);
             httpRequest("/thermostat/0?boost_minutes=" + minutes);
         }
@@ -357,8 +361,8 @@ public class Shelly1HttpApi extends ShellyHttpClient implements ShellyApiInterfa
     }
 
     @Override
-    public String deviceReboot() throws ShellyApiException {
-        return callApi(SHELLY_URL_RESTART, String.class);
+    public void deviceReboot() throws ShellyApiException {
+        callApi(SHELLY_URL_RESTART, String.class);
     }
 
     @Override
@@ -490,10 +494,9 @@ public class Shelly1HttpApi extends ShellyHttpClient implements ShellyApiInterfa
      *            plain or hex64 format
      *
      * @throws ShellyApiException
-     * @throws IllegalArgumentException
      */
     @Override
-    public void sendIRKey(String keyCode) throws ShellyApiException, IllegalArgumentException {
+    public void sendIRKey(String keyCode) throws ShellyApiException {
         String type = "";
         if (profile.irCodes.containsKey(keyCode)) {
             type = SHELLY_IR_CODET_STORED;
@@ -541,8 +544,9 @@ public class Shelly1HttpApi extends ShellyHttpClient implements ShellyApiInterfa
     }
 
     private void setDimmerEvents() throws ShellyApiException {
-        if (profile.settings.dimmers != null) {
-            int sz = profile.settings.dimmers.size();
+        List<ShellySettingsDimmer> dimmers = profile.settings.dimmers;
+        if (dimmers != null) {
+            int sz = dimmers.size();
             for (int i = 0; i < sz; i++) {
                 setEventUrls(i);
             }

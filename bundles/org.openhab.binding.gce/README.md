@@ -36,8 +36,8 @@ The IPX800v3 (ID : 'ipx800v3') accepts the following configuration parameters :
 | portNumber          | 9870    | No       | TCP client connection port. |
 | pullInterval*       | 5000    | No       | Refresh interval (in ms)    |
 
-The binding will query periodically the 'globalstatus.xml' page of the IPX to get fresh informations.
-This is especially usefull for Analog inputs and Counter as modification of these values on PLC side does not trigger any M2M message.
+The binding will query periodically the 'globalstatus.xml' page of the IPX to get fresh information.
+This is especially useful for Analog inputs and Counter as modification of these values on PLC side does not trigger any M2M message.
 
 The thing provides four groups of channels.
 
@@ -168,7 +168,7 @@ Thing gce:ipx800v3:ipx "IPX800" @ "diningroom" [hostname="192.168.0.144", portNu
             debouncePeriod=2500
         ]
         Type relay : relay#8 [       // Actionneur porte de garage
-            pulse=true    
+            pulse=true
         ]
 }
 ```
@@ -181,7 +181,7 @@ Group gIPXInputs "Inputs" <input>
 Contact input1 "Porte garage ouverte [%s]" <contact> (gIPXInputs) {channel="gce:ipx800v3:ipx:contact#1"}
 Contact input2 "Porte garage fermée [%s]"  <contact> (gIPXInputs) {channel="gce:ipx800v3:ipx:contact#2"}
 
-Group gIPXOutputs "Outputs" <output>          
+Group gIPXOutputs "Outputs" <output>
 Switch output3 "Chaudière" <furnace> (gIPXOutputs) {channel="gce:ipx800v3:ipx:relay#3"}
 Switch output4 "Lumière Porche" <light> (gIPXOutputs) {channel="gce:ipx800v3:ipx:relay#4"}
 

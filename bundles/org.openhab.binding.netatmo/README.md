@@ -103,13 +103,13 @@ Netatmo servers can send push notifications to the Netatmo Binding by using a ca
 The webhook URL is setup at Netatmo Account level using "Webhook Address" parameter.
 You will define here public way to access your openHAB server:
 
-```
+```text
 http(s)://xx.yy.zz.ww:443
 ```
 
 Your Netatmo App will be configured automatically by the bridge to the endpoint:
 
-```
+```text
 http(s)://xx.yy.zz.ww:443/netatmo/webhook/<_CLIENT_ID_><webHookPostfix>
 ```
 
@@ -130,8 +130,7 @@ First login with your user.
 Then some examples of the documentation contain the **real results** of your weather station.
 In order to try the examples, you need the `device_id` of your Netatmo station.
 You can find it in the configuration menu of the app (android or apple).
-Get the IDs of your devices (indoor, outdoor, rain gauge)
-[here](https://dev.netatmo.com/resources/technical/reference/weather/getstationsdata).
+Get the IDs of your devices (indoor, outdoor, rain gauge) from the [official documentation](https://dev.netatmo.com/resources/technical/reference/weather/getstationsdata).
 
 `main_device` is the ID of the "main device", the indoor sensor.
 This is equal to the MAC address of the Netatmo.
@@ -358,13 +357,13 @@ It will auto-adapt to stick as closely as possible to the last data availability
 | signal        | strength            | Number               | Signal strength (0 for no signal, 1 for weak...) |
 | signal        | value               | Number:Power         | Signal strength in dBm                           |
 
-(*) Health index values :
+(*) Health index values:
 
-- 0 : healthy
-- 1 : fine
-- 2 : fair
-- 3 : poor
-- 4 : unhealthy
+- 0: healthy
+- 1: fine
+- 2: fair
+- 3: poor
+- 4: unhealthy
 
 All these channels are read only.
 
@@ -449,11 +448,10 @@ All these channels except setpoint and setpoint-mode are read only.
 
 ### Home
 
-A Home is the Thing holding various modules and devices. They can hold two areas of equipments : Security and Energy.
+A Home is the Thing holding various modules and devices. They can hold two areas of equipments: Security and Energy.
 Depending on the way it is configured the behaviour will be adapted and available channels can vary.
 
 **Home Configuration**
-
 The Home thing has the following configuration elements:
 
 | Parameter       | Type    | Required | Description                                                                         |
@@ -463,11 +461,11 @@ The Home thing has the following configuration elements:
 | securityId      | String  | No       | Id of a home holding security monitoring devices                                    |
 | refreshInterval | Integer | No       | Refresh interval for refreshing the data in seconds. Default 180.                   |
 
-At least one of these parameter must be filled - at most two : 
+At least one of these parameter must be filled - at most two:
 
-* id or securityId
-* id or energyId
-* securityId and energyId
+- id or securityId
+- id or energyId
+- securityId and energyId
 
 (1) this parameter is kept for backward compatibility.
 
@@ -481,7 +479,14 @@ All channels are read only.
 | security      | unknown-person-count   | Number    | Total number of unknown persons that are at home |
 | security      | unknown-person-picture | Image     | Snapshot of unknown person that is at home       |
 
-**Supported trigger channels for the Security Home thing:**
+**Supported channels for the Energy Home thing:**
+
+| Channel Group | Channel Id             | Item Type   | Read/Write | Description                                               |
+| ------------- | ---------------------- | ----------- |----------- | --------------------------------------------------------- |
+| energy        | setpoint-duration      | Number:Time | Read-only  | Default duration of manual setpoint changes               |
+| energy        | planning               | String      | Read-write | Planning currently applied when following weekly schedule |
+| energy        | mode                   | String      | Read-write | Chosen thermostat mode (home, frost guard, manual, max)   |
+| energy        | end                    | DateTime    | Read-only  | End time of the currently applied thermostat mode         |
 
 **Supported trigger channels for the Security Home, Presence and Doorbell thing:**
 
@@ -531,7 +536,7 @@ Warnings:
 | live           | picture (**)         | Image        | Read-only  | Camera Live Snapshot                                                                                                                        |
 | live           | local-picture-url    | String       | Read-only  | Local Url of the live snapshot for this camera                                                                                              |
 | live           | vpn-picture-url      | String       | Read-only  | Url of the live snapshot for this camera through Netatmo VPN.                                                                               |
-| live           | local-stream-url (*) | String       | Read-only  | Local Url of the live stream for this camera (accessible if openhab server and camera are located on the same lan.                          |
+| live           | local-stream-url (*) | String       | Read-only  | Local Url of the live stream for this camera (accessible if openHAB server and camera are located on the same lan.                          |
 | live           | vpn-stream-url (*)   | String       | Read-only  | Url of the live stream for this camera through Netatmo VPN.                                                                                 |
 | signal         | strength             | Number       | Read-only  | Signal strength (0 for no signal, 1 for weak...)                                                                                            |
 | signal         | value                | Number:Power | Read-only  | Signal strength in dBm                                                                                                                      |
@@ -546,7 +551,7 @@ Warnings:
 | last-event     | video-status         | String       | Read-only  | Status of the video (recording, deleted or available)                                                                                       |
 | last-event     | person-id            | String       | Read-only  | Id of the person the event is about (if any)                                                                                                |
 
-(*) This channel is configurable : low, poor, high.
+(*) This channel is configurable: low, poor, high.
 (**) This channel handles the REFRESH command for on demand update.
 
 **Supported channels for the Presence Camera thing:**
@@ -563,12 +568,12 @@ Warnings:
 | status         | alim                 | String       | Read-only  | State of the power connector                                                                                                                |
 | live           | picture              | Image        | Read-only  | Camera Live Snapshot                                                                                                                        |
 | live           | picture-url          | String       | Read-only  | Url of the live snapshot for this camera                                                                                                    |
-| live           | local-stream-url (*) | String       | Read-only  | Local Url of the live stream for this camera (accessible if openhab server and camera are located on the same lan.                          |
+| live           | local-stream-url (*) | String       | Read-only  | Local Url of the live stream for this camera (accessible if openHAB server and camera are located on the same lan.                          |
 | live           | vpn-stream-url (*)   | String       | Read-only  | Url of the live stream for this camera through Netatmo VPN.                                                                                 |
 | signal         | strength             | Number       | Read-only  | Signal strength (0 for no signal, 1 for weak...)                                                                                            |
 | signal         | value                | Number:Power | Read-only  | Signal strength in dBm                                                                                                                      |
 | presence       | floodlight           | String       | Read-write | Sets the floodlight to ON/OFF/AUTO                                                                                                          |
-| presence       | siren                | Switch       | Read-write | Status of the siren, if silent or emitting an alarm                                                                                         |
+| presence       | siren                | Switch       | Read-only  | Status of the siren, if silent or emitting an alarm                                                                                         |
 | last-event     | type                 | String       | Read-only  | Type of event                                                                                                                               |
 | last-event     | subtype              | String       | Read-only  | Sub-type of event                                                                                                                           |
 | last-event     | time                 | DateTime     | Read-only  | Time of occurrence of event                                                                                                                 |
@@ -587,7 +592,7 @@ Warnings:
 | sub-event      | snapshot             | Image        | Read-only  | picture of the snapshot                                                                                                                     |
 | sub-event      | vignette             | Image        | Read-only  | picture of the vignette                                                                                                                     |
 
-(*) This channel is configurable : low, poor, high.
+(*) This channel is configurable: low, poor, high.
 
 **Supported channels for the Doorbell thing:**
 
@@ -643,25 +648,26 @@ Note: live feeds either locally or via VPN are not available in Netatmo API.
 
 Netatmo API distinguishes two kinds of persons:
 
-- Known persons : have been identified by the camera and you have defined a name for those.
-- Unknown persons : identified by the camera, but no name defined.
+- Known persons: have been identified by the camera and you have defined a name for those.
+- Unknown persons: identified by the camera, but no name defined.
 
 Person things are automatically created in discovery process for all known persons.
 
 **Supported channels for the Person thing:**
 
-| Channel Group | Channel ID   | Item Type | Description                                            |
-| ------------- | ------------ | --------- | ------------------------------------------------------ |
-| person        | avatar-url   | String    | URL for the avatar of this person                      |
-| person        | avatar       | Image     | Avatar of this person                                  |
-| person        | at-home      | Switch    | Indicates if this person is known to be at home or not |
-| person        | last-seen    | DateTime  | Moment when this person was last seen                  |
-| last-event    | subtype      | String    | Sub-type of event                                      |
-| last-event    | message      | String    | Last event message from this person                    |
-| last-event    | time         | DateTime  | Moment of the last event for this person               |
-| last-event    | snapshot     | Image     | Picture of the last event for this person              |
-| last-event    | snapshot-url | String    | URL for the picture of the last event for this person  |
-| last-event    | camera-id    | String    | ID of the camera that triggered the event              |
+| Channel Group  | Channel ID   | Item Type | Description                                                                                       |
+| -------------- | ------------ | --------- | ------------------------------------------------------------------------------------------------- |
+| security-event | home-event   |           | Trigger channel which is triggered by an event for this person (PERSON, PERSON_AWAY, PERSON_HOME) |
+| person         | avatar-url   | String    | URL for the avatar of this person                                                                 |
+| person         | avatar       | Image     | Avatar of this person                                                                             |
+| person         | at-home      | Switch    | Indicates if this person is known to be at home or not                                            |
+| person         | last-seen    | DateTime  | Moment when this person was last seen                                                             |
+| last-event     | subtype      | String    | Sub-type of event                                                                                 |
+| last-event     | message      | String    | Last event message from this person                                                               |
+| last-event     | time         | DateTime  | Moment of the last event for this person                                                          |
+| last-event     | snapshot     | Image     | Picture of the last event for this person                                                         |
+| last-event     | snapshot-url | String    | URL for the picture of the last event for this person                                             |
+| last-event     | camera-id    | String    | ID of the camera that triggered the event                                                         |
 
 All these channels except at-home are read only.
 
@@ -810,7 +816,7 @@ sitemap netatmo label="Netatmo" {
         Text item=Indoor_TimeStamp
         Text item=Indoor_LastSeen
     }
-    Frame label="Outdoor" { 
+    Frame label="Outdoor" {
         Text item=Outdoor_Temperature
         Text item=Outdoor_TempTrend
         Text item=Outdoor_Humidity

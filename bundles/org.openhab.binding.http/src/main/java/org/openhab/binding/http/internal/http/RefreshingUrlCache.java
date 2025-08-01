@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -108,7 +108,7 @@ public class RefreshingUrlCache {
 
         // format URL
         try {
-            URI uri = Util.uriFromString(String.format(this.url, new Date()));
+            URI uri = Util.uriFromString(Util.wrappedStringFormat(this.url, new Date()));
             logger.trace("Requesting refresh (retry={}) from '{}' with timeout {}ms", isRetry, uri, timeout);
 
             httpClient.newRequest(uri, httpMethod, httpContent, httpContentType).thenAccept(request -> {

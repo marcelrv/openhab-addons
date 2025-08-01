@@ -38,7 +38,7 @@ This binding is developed on and tested with the following devices
 - USB300 and EnOceanPi gateways
 - The following Eltako actuators:
   - FSR14 (light switch)
-  - FSB14 (rollershutter)
+  - FSB14, FJ62 (rollershutter)
   - FUD14 (dimmer)
   - FSSA-230V (smart plug)
   - FWZ12-65A (energy meter)
@@ -93,8 +93,8 @@ Hence if your device supports one of the following EEPs the chances are good tha
 | automatedMeterSensor            | A5-12             | 0x00-03                 | counter, currentNumber, instantpower, totalusage, amrLitre, amrCubicMetre | FWZ12     | Discovery |
 | environmentalSensor             | A5-13             | 0x01-02                 | temperature, windspeed, illumination, rainStatus            | FWS61                   | Discovery |
 | centralCommand                  | A5-38             | 0x08                    | dimmer, generalSwitch                                       | Eltako FUD14, FSR14     | Teach-in  |
-| rollershutter                   | A5-3F/D2-05/A5-38 | 0x7F/00/08              | rollershutter                                               | Eltako FSB14, NodOn SIN-2-RS-01| Teach-in/Discovery |
-| measurementSwitch               | D2-01             | 0x00-0F,11,12           | generalSwitch(/A/B), instantpower, totalusage, repeaterMode | NodOn In Wall Switch    | Discovery |
+| rollershutter                   | A5-3F/D2-05/A5-38 | 0x7F/00/08              | rollershutter                                               | Eltako FSB14 / FJ62, NodOn SIN-2-RS-01| Teach-in/Discovery |
+| measurementSwitch               | D2-01             | 0x00-0F,11,12           | generalSwitch(/A/B), dimmer, pilotWire, instantpower, totalusage, repeaterMode | NodOn In Wall Switch    | Discovery |
 | windowSashHandleSensor          | D2-06             | 0x50                    | windowHandleState, windowSashState, batteryLevel, batteryLow, windowBreachEvent, windowCalibrationState, windowCalibrationStep | Siegenia Senso Secure | Discovery |
 | multiFunctionSmokeDetector      | D2-14/F6-05       | 0x30/02                 | smokeDetection, batteryLow                                  | Insafe+, Afriso ASD     | Discovery |
 | heatRecoveryVentilation         | D2-50             | 0x00,01,10,11           | a lot of different state channels                           | Dimplex DL WE2          | Discovery |
@@ -107,7 +107,7 @@ Hence if your device supports one of the following EEPs the chances are good tha
 ³ Note that the soda handles potentially contain a wide range of different sensors and buttons.
 However the amount of built-in sensors and buttons may vary between different models.
 In case your particular device does not contain one of the potentially supported features the corresponding channel will never trigger an update.
-Please see the manual of your particular model to check which channels should be supported before opening an issue.  
+Please see the manual of your particular model to check which channels should be supported before opening an issue.
 
 Furthermore following supporting EEP family is available too: A5-11, types 0x03 (rollershutter position status), 0x04 (extended light status) and D0-06 (battery level indication).
 
@@ -183,9 +183,9 @@ If you change the SenderId of your thing, you have to pair again the thing with 
 |Thing type                       | Parameter         | Meaning                     | Possible Values |
 |---------------------------------|-------------------|-----------------------------|---|
 | bridge                          | path              | Path to the EnOcean Gateway | COM3, /dev/ttyAMA0, rfc2217://x.x.x.x:3001 |
-|                                 | nextSenderId      | Set SenderId of next created thing.<br/>If omitted, the next unused SenderId is taken | 1-127 |
+|                                 | nextSenderId      | Set SenderId of next created thing. If omitted, the next unused SenderId is taken | 1-127 |
 |                                 | espVersion        | ESP Version of gateway | ESP3, ESP2 |
-|                                 | rs485             | If gateway is directly connected to a RS485 bus the BaseId is set to 0x00 | true, false
+|                                 | rs485             | If gateway is directly connected to a RS485 bus the BaseId is set to 0x00 | true, false |
 |                                 | rs485BaseId       | Override BaseId 0x00 if your bus contains a telegram duplicator (FTD14 for ex) | 4 byte hex value |
 |                                 | enableSmack       | Enables SMACK pairing and handling of SMACK messages | true, false |
 |                                 | sendTeachOuts     | Defines if a repeated teach in request should be answered with a learned in or teach out response | true, false |
@@ -223,7 +223,7 @@ If you change the SenderId of your thing, you have to pair again the thing with 
 |                                 | enoceanId         | | |
 | environmentalSensor             | receivingEEPId    |                             | A5_13_01 |
 |                                 | enoceanId         | | |
-| centralCommand                  | senderIdOffset    | SenderId used for sending msg.<br/>If omitted, nextSenderId of bridge is used | 1-127 |
+| centralCommand                  | senderIdOffset    | SenderId used for sending msg. If omitted, nextSenderId of bridge is used | 1-127 |
 |                                 | enoceanId         | | |
 |                                 | sendingEEPId      | EEP used for sending msg    | A5_38_08_01, A5_38_08_02 |
 |                                 | broadcastMessages | Send broadcast or addressed msg | true, false |
@@ -233,13 +233,13 @@ If you change the SenderId of your thing, you have to pair again the thing with 
 |                                 | enoceanId         | | |
 |                                 | sendingEEPId      |                             | A5_3F_7F_EltakoFSB, A5_3F_7F_EltakoFRM, A5_38_08_07, D2_05_00_NODON |
 |                                 | broadcastMessages |                             | true, false |
-|                                 | receivingEEPId¹   |                             | A5_3F_7F_EltakoFSB, A5_3F_7F_EltakoFRM, A5_11_03, D2_05_00_NODON |
+|                                 | receivingEEPId¹   |                             | A5_3F_7F_EltakoFSB, A5_3F_7F_EltakoFRM, F6_00_00_EltakoFJ62, A5_11_03, D2_05_00_NODON |
 |                                 | suppressRepeating |                             | true, false |
 |                                 | pollingInterval   | Refresh interval in seconds | Integer |
 | measurementSwitch               | senderIdOffset    |                             | 1-127 |
 |                                 | enoceanId         | | |
-|                                 | sendingEEPId      |                             | D2_01_00-0F, D2_01_11, D2_01_12,<br/>D2_01_09_PERMUNDO, D2_01_0F_NODON, D2_01_12_NODON |
-|                                 | receivingEEPId¹   |                             | D2_01_00-0F, D2_01_11, D2_01_12,<br/>D2_01_09_PERMUNDO, D2_01_0F_NODON, D2_01_12_NODON,<br/> A5_12_01 |
+|                                 | sendingEEPId      |                             | D2_01_00-0F, D2_01_11, D2_01_12, D2_01_09_PERMUNDO, D2_01_0F_NODON, D2_01_12_NODON |
+|                                 | receivingEEPId¹   |                             | D2_01_00-0F, D2_01_11, D2_01_12, D2_01_09_PERMUNDO, D2_01_0F_NODON, D2_01_12_NODON, A5_12_01 |
 |                                 | broadcastMessages |                             | true, false |
 |                                 | pollingInterval   |                             | Integer |
 |                                 | suppressRepeating |                             | true, false |
@@ -249,8 +249,8 @@ If you change the SenderId of your thing, you have to pair again the thing with 
 |                                 | enoceanId         | | |
 | heatRecoveryVentilation         | senderIdOffset    |                             | 1-127 |
 |                                 | enoceanId         | | |
-|                                 | sendingEEPId      |                             | D2_50_00, D2_50_01,<br/>D2_50_10, D2_50_11 |
-|                                 | receivingEEPId    |                             | D2_50_00, D2_50_01,<br/>D2_50_10, D2_50_11 |
+|                                 | sendingEEPId      |                             | D2_50_00, D2_50_01, D2_50_10, D2_50_11 |
+|                                 | receivingEEPId    |                             | D2_50_00, D2_50_01, D2_50_10, D2_50_11 |
 |                                 | broadcastMessages |                             | true, false |
 |                                 | suppressRepeating |                             | true, false |
 | classicDevice                   | senderIdOffset    |                             | 1-127 |
@@ -302,10 +302,11 @@ The channels of a thing are determined automatically based on the chosen EEP.
 | generalSwitch(/A/B)               | Switch                    | Switch something (channel A/B) ON/OFF |
 | rollershutter                     | Rollershutter             | Shut time (shutTime) in seconds can be configured |
 | angle                             | Number:Angle              | The angle for blinds |
+| pilotWire                         | Number                    | Device mode: 1 - Off, 2 - Comfort, 3 - Eco, 4 - Anti-freeze, 5 - Comfort1, 6 - Comfort2 |
 | instantpower                      | Number:Power              | Instant power consumption in Watts |
 | totalusage                        | Number:Energy             | Used energy in Kilowatt hours |
 | teachInCMD                        | Switch                    | Sends a teach-in msg, content can configured with parameter teachInMSG |
-| virtualSwitchA                    | Switch                    | Used to convert switch item commands into rocker switch messages (channel A used)<br/>Time in ms between sending a pressed and release message can be defined with channel parameter duration.<br/>The switch mode (rocker switch: use DIR1 and DIR2, toggle: use just one DIR) can be set with channel parameter switchMode (rockerSwitch, toggleButtonDir1, toggleButtonDir2) |
+| virtualSwitchA                    | Switch                    | Used to convert switch item commands into rocker switch messages (channel A used). Time in ms between sending a pressed and release message can be defined with channel parameter duration. The switch mode (rocker switch: use DIR1 and DIR2, toggle: use just one DIR) can be set with channel parameter switchMode (rockerSwitch, toggleButtonDir1, toggleButtonDir2) |
 | virtualRollershutterA             | Rollershutter             | Used to convert rollershutter item commands into rocker switch messages (channel A used) |
 | rockerswitchListenerSwitch        | Switch                    | Used to convert rocker switch messages into switch item state updates |
 | rockerswitchListenerRollershutter | Rollershutter             | Used to convert rocker switch messages into rollershutter item state updates |
@@ -416,12 +417,12 @@ Bridge enocean:bridge:gtwy "EnOcean Gateway" [ path="/dev/ttyAMA0" ] {
    Thing centralCommand cc02 "Dimmer" @ "Living room" [ enoceanId="aabbcc05", senderIdOffset=2, sendingEEPId="A5_38_08_02", receivingEEPId="A5_38_08_02", broadcastMessages=true, suppressRepeating=false ]
    Thing rollershutter r01 "Rollershutter" @ "Kitchen" [ enoceanId="aabbcc06", senderIdOffset=3, sendingEEPId="A5_3F_7F_EltakoFSB", receivingEEPId="A5_3F_7F_EltakoFSB", broadcastMessages=true, suppressRepeating=false ] {Channels: Type rollershutter:rollershutter [shutTime=25]}
    Thing measurementSwitch ms01 "TV Smart Plug" @ "Living room" [ enoceanId="aabbcc07", senderIdOffset=4, sendingEEPId="D2_01_09", broadcastMessages=false, receivingEEPId="D2_01_09","A5_12_01", suppressRepeating=false, pollingInterval=300]
-   Thing classicDevice cd01 "Garage_Light" @ "Garage" [ 
-        senderIdOffset=5, 
-        sendingEEPId="F6_02_01", 
-        broadcastMessages=true, 
+   Thing classicDevice cd01 "Garage_Light" @ "Garage" [
+        senderIdOffset=5,
+        sendingEEPId="F6_02_01",
+        broadcastMessages=true,
         receivingEEPId="F6_02_01",
-        suppressRepeating=false 
+        suppressRepeating=false
    ] {
         Type virtualSwitchA             : virtualSwitchA              [duration=300, switchMode="rockerSwitch"]
         Type rockerswitchListenerSwitch : Listener1 "Schalter links"  [enoceanId="aabbcc08", channel="channelA", switchMode="toggleButtonDir1"]
@@ -436,8 +437,8 @@ Switch Light_Switch { channel="enocean:rockerSwitch:gtwy:rs01:rockerSwitchAction
 Dimmer Kitchen_Hue "Hue" <light> {channel="enocean:rockerSwitch:gtwy:rs01:rockerswitchB" [profile="system:rawrocker-to-dimmer"], channel="hue:0220:0017884f6626:9:brightness"}
 Rollershutter Kitchen_Rollershutter "Roller shutter" <blinds> (Kitchen) {channel="enocean:rollershutter:gtwy:r01:rollershutter", autoupdate="false"}
 Switch Garage_Light "Switch" {
-        channel="enocean:classicDevice:gtwy:cd01:virtualRockerswitchA", 
-        channel="enocean:classicDevice:gtwy:cd01:Listener1", 
+        channel="enocean:classicDevice:gtwy:cd01:virtualRockerswitchA",
+        channel="enocean:classicDevice:gtwy:cd01:Listener1",
         channel="enocean:classicDevice:gtwy:cd01:Listener2"
 }
 ```

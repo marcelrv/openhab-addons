@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -14,12 +14,12 @@ package org.openhab.binding.ecovacs.internal.handler;
 
 import static org.openhab.binding.ecovacs.internal.EcovacsBindingConstants.*;
 
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -320,7 +320,7 @@ public class EcovacsVacuumHandler extends BaseThingHandler implements EcovacsDev
             }
             return new StringType(def);
         });
-        updateState(CHANNEL_ID_CLEANING_SPOT_DEFINITION, areaDefState.orElse(UnDefType.UNDEF));
+        updateState(CHANNEL_ID_CLEANING_SPOT_DEFINITION, Objects.requireNonNull(areaDefState.orElse(UnDefType.UNDEF)));
         if (newMode == CleanMode.RETURNING) {
             scheduleNextPoll(30);
         } else if (newMode.isIdle()) {
@@ -583,8 +583,7 @@ public class EcovacsVacuumHandler extends BaseThingHandler implements EcovacsDev
             if (!cleanLogRecords.isEmpty()) {
                 CleanLogRecord record = cleanLogRecords.get(0);
 
-                updateState(CHANNEL_ID_LAST_CLEAN_START,
-                        new DateTimeType(record.timestamp.toInstant().atZone(ZoneId.systemDefault())));
+                updateState(CHANNEL_ID_LAST_CLEAN_START, new DateTimeType(record.timestamp.toInstant()));
                 updateState(CHANNEL_ID_LAST_CLEAN_DURATION, new QuantityType<>(record.cleaningDuration, Units.SECOND));
                 updateState(CHANNEL_ID_LAST_CLEAN_AREA, new QuantityType<>(record.cleanedArea, SIUnits.SQUARE_METRE));
                 if (device.hasCapability(DeviceCapability.EXTENDED_CLEAN_LOG_RECORD)) {
@@ -597,7 +596,7 @@ public class EcovacsVacuumHandler extends BaseThingHandler implements EcovacsDev
                             lastDownloadedCleanMapUrl = record.mapImageUrl;
                             return new RawType(bytes, "image/png");
                         });
-                        updateState(CHANNEL_ID_LAST_CLEAN_MAP, content.orElse(UnDefType.NULL));
+                        updateState(CHANNEL_ID_LAST_CLEAN_MAP, Objects.requireNonNull(content.orElse(UnDefType.NULL)));
                     }
                 }
             }
@@ -713,7 +712,7 @@ public class EcovacsVacuumHandler extends BaseThingHandler implements EcovacsDev
 
     private State stringToState(@Nullable String value) {
         Optional<State> stateOpt = Optional.ofNullable(value).map(v -> StringType.valueOf(v));
-        return stateOpt.orElse(UnDefType.UNDEF);
+        return Objects.requireNonNull(stateOpt.orElse(UnDefType.UNDEF));
     }
 
     private @Nullable AbstractNoResponseCommand determineDeviceCommand(EcovacsDevice device, String command) {

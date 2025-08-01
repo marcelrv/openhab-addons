@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -94,7 +94,7 @@ public class KlapProtocol implements org.openhab.binding.tapocontrol.internal.ap
         String command = tapoRequest.method();
         logger.trace("({}) sending unencrypted request: '{}' to '{}' ", uid, tapoRequest, url);
 
-        Request httpRequest = httpDelegator.getHttpClient().newRequest(url).method(HttpMethod.POST.toString());
+        Request httpRequest = httpDelegator.getHttpClient().newRequest(url).method(HttpMethod.POST);
 
         /* set header */
         httpRequest = setHeaders(httpRequest);
@@ -126,7 +126,7 @@ public class KlapProtocol implements org.openhab.binding.tapocontrol.internal.ap
         Integer ivSequence = session.getIvSequence();
         logger.trace("({}) encrypted request is '{}' with sequence '{}'", uid, encrypteString, ivSequence);
 
-        Request httpRequest = httpDelegator.getHttpClient().newRequest(url).method(HttpMethod.POST.toString());
+        Request httpRequest = httpDelegator.getHttpClient().newRequest(url).method(HttpMethod.POST);
 
         /* set header and params */
         httpRequest = setHeaders(httpRequest);
@@ -263,7 +263,6 @@ public class KlapProtocol implements org.openhab.binding.tapocontrol.internal.ap
      */
     protected Request setHeaders(Request httpRequest) {
         if (!session.isHandshakeComplete()) {
-            httpRequest.header("content-type", CONTENT_TYPE_JSON);
             httpRequest.header("Accept", CONTENT_TYPE_JSON);
         }
         if (!session.getCookie().isBlank()) {

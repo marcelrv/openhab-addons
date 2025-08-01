@@ -93,7 +93,7 @@ Devices support some of the following channels:
 | filterAdvise        | Switch        | Indicates if a WeMo Coffee Maker needs to have the filter changed                                                          | CoffeeMaker                                          |
 | brewed              | DateTime      | Date/time the coffee maker last completed brewing coffee                                                                   | CoffeeMaker                                          |
 | lastCleaned         | DateTime      | Date/time the coffee maker last completed cleaning                                                                         | CoffeeMaker                                          |
-| brightness          | Number        | Brightness of a WeMo LED od Dimmwer.                                                                                       | LED, DimmerSwitch                                    |
+| brightness          | Number        | Brightness of a WeMo LED or Dimmer.                                                                                        | LED, DimmerSwitch                                    |
 | faderCountDownTime  | Number        | Dimmer fading duration time in minutes                                                                                     | DimmerSwitch                                         |
 | faderEnabled        | Switch        | Switch the fader ON/OFF                                                                                                    | DimmerSwitch                                         |
 | timerStart          | Switch        | Switch the fading timer ON/OFF                                                                                             | DimmerSwitch                                         |
@@ -222,27 +222,27 @@ sitemap demo label="Main Menu"
     Frame {
        // Switch
        Switch item=DemoSwitch
-       
+
        // LightSwitch
        Switch item=LightSwitch
-       
+
        // Motion
        Switch item=MotionSensor
        Text item=MotionSensorLastChanged icon="clock"
-       
+
        // Insight
        Switch item=InsightSwitch
        Number item=InsightPower
        Number item=InsightLastOn
        Number item=InsightToday
        Number item=InsightTotal
-       
+
        // LED Bulb
        Switch item=LED1
        Slider item=dLED1
        Switch item=LED2
        Slider item=dLED2
-       
+
        //DimmerSwitch
        Switch item=DimmerSwitch
        Slider item=dDimmerSwitch
@@ -253,7 +253,7 @@ sitemap demo label="Main Menu"
        Slider item=NightModeBrightness
        Text item=NightModeStart
        Text item=NightModeEnd
-       
+
        // CoffeMaker
        Switch item=CoffeSwitch
        Text item=CoffeMode

@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,26 +12,13 @@
  */
 package org.openhab.binding.boschshc.internal.devices.bridge;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.ArgumentMatchers.same;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -65,6 +52,7 @@ import org.openhab.binding.boschshc.internal.devices.bridge.dto.DeviceServiceDat
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.DeviceTest;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.Faults;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.LongPollResult;
+import org.openhab.binding.boschshc.internal.devices.bridge.dto.Message;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.PublicInformation;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.Room;
 import org.openhab.binding.boschshc.internal.devices.bridge.dto.Scenario;
@@ -232,6 +220,14 @@ class BridgeHandlerTest {
         when(devicesRequest.send()).thenReturn(devicesResponse);
         when(httpClient.createRequest(contains("/devices"), same(HttpMethod.GET))).thenReturn(devicesRequest);
 
+        PublicInformation publicInformation = new PublicInformation();
+        publicInformation.shcIpAddress = "192.168.0.123";
+        publicInformation.macAddress = "64-da-a0-ab-cd-ef";
+        publicInformation.shcGeneration = "SHC_1";
+        publicInformation.apiVersions = List.of("2.9", "3.2");
+        when(httpClient.sendRequest(any(), same(PublicInformation.class), any(), isNull()))
+                .thenReturn(publicInformation);
+
         SubscribeResult subscribeResult = new SubscribeResult();
         when(httpClient.sendRequest(any(), same(SubscribeResult.class), any(), any())).thenReturn(subscribeResult);
 
@@ -246,6 +242,12 @@ class BridgeHandlerTest {
 
         verify(thingHandlerCallback).statusUpdated(any(),
                 eq(ThingStatusInfoBuilder.create(ThingStatus.ONLINE, ThingStatusDetail.NONE).build()));
+
+        verify(thing).setProperty(Thing.PROPERTY_MAC_ADDRESS, "64-da-a0-ab-cd-ef");
+        verify(thing).setProperty(BridgeHandler.THING_PROPERTY_API_VERSIONS, "2.9, 3.2");
+
+        verify(thingHandlerCallback).thingUpdated(thing);
+
         verify(thingDiscoveryListener).doScan();
     }
 
@@ -739,6 +741,51 @@ class BridgeHandlerTest {
     }
 
     @Test
+    void handleLongPollResultHandleMessage() {
+        List<Thing> things = new ArrayList<Thing>();
+        when(thing.getThings()).thenReturn(things);
+
+        Thing thing = mock(Thing.class);
+        things.add(thing);
+
+        BoschSHCHandler thingHandler = mock(BoschSHCHandler.class);
+        when(thing.getHandler()).thenReturn(thingHandler);
+
+        when(thingHandler.getBoschID()).thenReturn("hdm:ZigBee:5cc7c1fffe1f7967");
+
+        String json = """
+                {
+                    "result": [{
+                        "sourceId": "hdm:ZigBee:5cc7c1fffe1f7967",
+                        "sourceType": "DEVICE",
+                        "@type": "message",
+                        "flags": [],
+                        "messageCode": {
+                            "name": "TILT_DETECTED",
+                            "category": "WARNING"
+                        },
+                        "location": "Kitchen",
+                        "arguments": {
+                            "deviceModel": "WLS"
+                        },
+                        "id": "3499a60e-45b5-4c29-ae1a-202c2182970c",
+                        "sourceName": "Bosch_water_detector_1",
+                        "timestamp": 1714375556426
+                    }],
+                    "jsonrpc": "2.0"
+                }
+                """;
+        LongPollResult longPollResult = GsonUtils.DEFAULT_GSON_INSTANCE.fromJson(json, LongPollResult.class);
+        assertNotNull(longPollResult);
+
+        fixture.handleLongPollResult(longPollResult);
+
+        Message expectedMessage = (Message) longPollResult.result.get(0);
+
+        verify(thingHandler).processMessage(expectedMessage);
+    }
+
+    @Test
     void handleLongPollResultScenarioTriggered() {
         Channel channel = mock(Channel.class);
         when(thing.getChannel(BoschSHCBindingConstants.CHANNEL_SCENARIO_TRIGGERED)).thenReturn(channel);
@@ -1079,5 +1126,34 @@ class BridgeHandlerTest {
 
         verify(httpClient).createRequest(any(), same(HttpMethod.GET));
         verify(httpClient).sendRequest(any(), same(PublicInformation.class), any(), isNull());
+    }
+
+    @Test
+    void resolveRoomId() throws InterruptedException, TimeoutException, ExecutionException {
+        Request request = mock(Request.class);
+        when(httpClient.createRequest(any(), eq(HttpMethod.GET))).thenReturn(request);
+        ContentResponse contentResponse = mock(ContentResponse.class);
+        when(request.send()).thenReturn(contentResponse);
+        when(contentResponse.getStatus()).thenReturn(200);
+        String roomsJson = """
+                [
+                    {
+                        "@type": "room",
+                        "id": "hz_1",
+                        "iconId": "icon_room_living_room",
+                        "name": "Living Room"
+                    },
+                    {
+                        "@type": "room",
+                        "id": "hz_2",
+                        "iconId": "icon_room_dining_room",
+                        "name": "Dining Room"
+                    }
+                ]
+                """;
+        when(contentResponse.getContentAsString()).thenReturn(roomsJson);
+        assertThat(fixture.resolveRoomId("hz_1"), is("Living Room"));
+        assertThat(fixture.resolveRoomId("hz_2"), is("Dining Room"));
+        assertThat(fixture.resolveRoomId(null), is(nullValue()));
     }
 }

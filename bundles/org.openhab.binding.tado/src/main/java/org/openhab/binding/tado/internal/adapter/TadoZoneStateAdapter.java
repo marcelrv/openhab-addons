@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2024 Contributors to the openHAB project
+/*
+ * Copyright (c) 2010-2025 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,8 +12,6 @@
  */
 package org.openhab.binding.tado.internal.adapter;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -21,26 +19,27 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.tado.internal.TadoBindingConstants.HvacMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.OperationMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.TemperatureUnit;
-import org.openhab.binding.tado.internal.api.model.ACFanLevel;
-import org.openhab.binding.tado.internal.api.model.ACHorizontalSwing;
-import org.openhab.binding.tado.internal.api.model.ACVerticalSwing;
-import org.openhab.binding.tado.internal.api.model.AcFanSpeed;
-import org.openhab.binding.tado.internal.api.model.AcPowerDataPoint;
-import org.openhab.binding.tado.internal.api.model.ActivityDataPoints;
-import org.openhab.binding.tado.internal.api.model.CoolingZoneSetting;
-import org.openhab.binding.tado.internal.api.model.GenericZoneSetting;
-import org.openhab.binding.tado.internal.api.model.HeatingZoneSetting;
-import org.openhab.binding.tado.internal.api.model.HotWaterZoneSetting;
-import org.openhab.binding.tado.internal.api.model.Overlay;
-import org.openhab.binding.tado.internal.api.model.OverlayTerminationConditionType;
-import org.openhab.binding.tado.internal.api.model.PercentageDataPoint;
-import org.openhab.binding.tado.internal.api.model.Power;
-import org.openhab.binding.tado.internal.api.model.SensorDataPoints;
-import org.openhab.binding.tado.internal.api.model.TadoSystemType;
-import org.openhab.binding.tado.internal.api.model.TemperatureDataPoint;
-import org.openhab.binding.tado.internal.api.model.TemperatureObject;
-import org.openhab.binding.tado.internal.api.model.TimerTerminationCondition;
-import org.openhab.binding.tado.internal.api.model.ZoneState;
+import org.openhab.binding.tado.swagger.codegen.api.model.ACFanLevel;
+import org.openhab.binding.tado.swagger.codegen.api.model.ACHorizontalSwing;
+import org.openhab.binding.tado.swagger.codegen.api.model.ACVerticalSwing;
+import org.openhab.binding.tado.swagger.codegen.api.model.AcFanSpeed;
+import org.openhab.binding.tado.swagger.codegen.api.model.AcPowerDataPoint;
+import org.openhab.binding.tado.swagger.codegen.api.model.ActivityDataPoints;
+import org.openhab.binding.tado.swagger.codegen.api.model.CoolingZoneSetting;
+import org.openhab.binding.tado.swagger.codegen.api.model.GenericZoneSetting;
+import org.openhab.binding.tado.swagger.codegen.api.model.HeatingZoneSetting;
+import org.openhab.binding.tado.swagger.codegen.api.model.HotWaterZoneSetting;
+import org.openhab.binding.tado.swagger.codegen.api.model.OpenWindow;
+import org.openhab.binding.tado.swagger.codegen.api.model.Overlay;
+import org.openhab.binding.tado.swagger.codegen.api.model.OverlayTerminationConditionType;
+import org.openhab.binding.tado.swagger.codegen.api.model.PercentageDataPoint;
+import org.openhab.binding.tado.swagger.codegen.api.model.Power;
+import org.openhab.binding.tado.swagger.codegen.api.model.SensorDataPoints;
+import org.openhab.binding.tado.swagger.codegen.api.model.TadoSystemType;
+import org.openhab.binding.tado.swagger.codegen.api.model.TemperatureDataPoint;
+import org.openhab.binding.tado.swagger.codegen.api.model.TemperatureObject;
+import org.openhab.binding.tado.swagger.codegen.api.model.TimerTerminationCondition;
+import org.openhab.binding.tado.swagger.codegen.api.model.ZoneState;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
@@ -226,13 +225,8 @@ public class TadoZoneStateAdapter {
         return "ON".equals(power.getValue());
     }
 
-    private static DecimalType toDecimalType(double value) {
-        BigDecimal decimal = new BigDecimal(value).setScale(2, RoundingMode.HALF_UP);
-        return new DecimalType(decimal);
-    }
-
     private static DateTimeType toDateTimeType(OffsetDateTime offsetDateTime) {
-        return new DateTimeType(offsetDateTime.toZonedDateTime());
+        return new DateTimeType(offsetDateTime.toInstant());
     }
 
     private static State toTemperatureState(@Nullable TemperatureObject temperature, TemperatureUnit temperatureUnit) {
@@ -260,6 +254,18 @@ public class TadoZoneStateAdapter {
             return OnOffType.from(openWindowDetected);
         }
         return OnOffType.OFF;
+    }
+
+    public State getOpenWindowRemainingTime() {
+        int seconds = 0;
+        OpenWindow openWindow = zoneState.getOpenWindow();
+        if (openWindow != null) {
+            Integer remainingSeconds = openWindow.getRemainingTimeInSeconds();
+            if (remainingSeconds != 0) {
+                seconds = remainingSeconds.intValue();
+            }
+        }
+        return new QuantityType<>(seconds, Units.SECOND);
     }
 
     public State getLight() {

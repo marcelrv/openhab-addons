@@ -43,111 +43,139 @@ All channels are read-only.
 Depending on the inverter model, and its configuration, not all of the channels will be present.
 The list of all possible channels is as follows:
 
-| Channel                       | Type                      | Description                                          | Advanced |
-|-------------------------------|---------------------------|------------------------------------------------------|----------|
-| system-status                 | Number:Dimensionless      | Inverter status code.                                |          |
-| pv1-voltage                   | Number:ElectricPotential  | DC voltage from solar panel string #1.               | yes      |
-| pv2-voltage                   | Number:ElectricPotential  | DC voltage from solar panel string #2.               | yes      |
-| pv1-current                   | Number:ElectricCurrent    | DC current from solar panel string #1.               | yes      |
-| pv2-current                   | Number:ElectricCurrent    | DC current from solar panel string #2.               | yes      |
-| pv-power                      | Number:Power              | Total DC solar input power.                          |          |
-| pv1-power                     | Number:Power              | DC power from solar panel string #1.                 | yes      |
-| pv2-power                     | Number:Power              | DC power from solar panel string #2.                 | yes      |
-| grid-frequency                | Number:Frequency          | Frequency of the grid.                               | yes      |
-| grid-voltage-r                | Number:ElectricPotential  | Voltage of the grid (phase #R).                      |          |
-| grid-voltage-s                | Number:ElectricPotential  | Voltage of the grid phase #S.                        | yes      |
-| grid-voltage-t                | Number:ElectricPotential  | Voltage of the grid phase #T.                        | yes      |
-| grid-voltage-rs               | Number:ElectricPotential  | Voltage of the grid phases #RS.                      | yes      |
-| grid-voltage-st               | Number:ElectricPotential  | Voltage of the grid phases #ST.                      | yes      |
-| grid-voltage-tr               | Number:ElectricPotential  | Voltage of the grid phases #TR.                      | yes      |
-| inverter-current-r            | Number:ElectricCurrent    | AC current from inverter (phase #R).                 | yes      |
-| inverter-current-s            | Number:ElectricCurrent    | AC current from inverter phase #S.                   | yes      |
-| inverter-current-t            | Number:ElectricCurrent    | AC current from inverter phase #T.                   | yes      |
-| inverter-power                | Number:Power              | Total AC output power from inverter.                 |          |
-| inverter-power-r              | Number:Power              | AC power from inverter (phase #R).                   |          |
-| inverter-power-s              | Number:Power              | AC power from inverter phase #S.                     | yes      |
-| inverter-power-t              | Number:Power              | AC power from inverter phase #T.                     | yes      |
-| inverter-va                   | Number:Power              | AC VA from inverter.                                 | yes      |
-| export-power                  | Number:Power              | Power exported to grid.                              |          |
-| export-power-r                | Number:Power              | Power exported to grid phase #R.                     | yes      |
-| export-power-s                | Number:Power              | Power exported to grid phase #S.                     | yes      |
-| export-power-t                | Number:Power              | Power exported to grid phase #T.                     | yes      |
-| import-power                  | Number:Power              | Power imported from grid.                            |          |
-| import-power-r                | Number:Power              | Power imported from grid phase #R.                   | yes      |
-| import-power-s                | Number:Power              | Power imported from grid phase #S.                   | yes      |
-| import-power-t                | Number:Power              | Power imported from grid phase #T.                   | yes      |
-| load-power                    | Number:Power              | Power supplied to load.                              |          |
-| load-power-r                  | Number:Power              | Power supplied to load phase #R.                     | yes      |
-| load-power-s                  | Number:Power              | Power supplied to load phase #S.                     | yes      |
-| load-power-t                  | Number:Power              | Power supplied to load phase #T.                     | yes      |
-| charge-power                  | Number:Power              | Battery charge power.                                |          |
-| charge-current                | Number:ElectricCurrent    | Battery charge current.                              | yes      |
-| discharge-power               | Number:Power              | Battery discharge power.                             |          |
-| discharge-va                  | Number:Power              | Battery discharge VA.                                | yes      |
-| pv-energy-today               | Number:Energy             | DC energy collected by solar panels today.           |          |
-| pv1-energy-today              | Number:Energy             | DC energy collected by solar panels string #1 today. | yes      |
-| pv2-energy-today              | Number:Energy             | DC energy collected by solar panels string #2 today. | yes      |
-| pv-energy-total               | Number:Energy             | Total DC energy collected by solar panels.           |          |
-| pv1-energy-total              | Number:Energy             | Total DC energy collected by solar panels string #1. | yes      |
-| pv2-energy-total              | Number:Energy             | Total DC energy collected by solar panels string #2. | yes      |
-| inverter-energy-today         | Number:Energy             | AC energy produced by inverter today.                |          |
-| inverter-energy-total         | Number:Energy             | Total AC energy produced by inverter.                |          |
-| export-energy-today           | Number:Energy             | Energy exported today.                               |          |
-| export-energy-total           | Number:Energy             | Total energy exported.                               |          |
-| import-energy-today           | Number:Energy             | Energy imported today.                               |          |
-| import-energy-total           | Number:Energy             | Total energy imported.                               |          |
-| load-energy-today             | Number:Energy             | Energy supplied to load today.                       |          |
-| load-energy-total             | Number:Energy             | Total energy supplied to load.                       |          |
-| import-charge-energy-today    | Number:Energy             | Energy imported to charge battery today.             |          |
-| import-charge-energy-total    | Number:Energy             | Total energy imported to charge battery.             |          |
-| inverter-charge-energy-today  | Number:Energy             | Inverter energy to charge battery today.             |          |
-| inverter-charge-energy-total  | Number:Energy             | Total inverter energy to charge battery.             |          |
-| discharge-energy-today        | Number:Energy             | Energy consumed from battery.                        |          |
-| discharge-energy-total        | Number:Energy             | Total energy consumed from battery.                  |          |
-| total-work-time               | Number:Time               | Total work time of the system.                       | yes      |
-| p-bus-voltage                 | Number:ElectricPotential  | P Bus voltage.                                       | yes      |
-| n-bus-voltage                 | Number:ElectricPotential  | N Bus voltage.                                       | yes      |
-| sp-bus-voltage                | Number:ElectricPotential  | SP Bus voltage.                                      | yes      |
-| pv-temperature                | Number:Temperature        | Temperature of the solar panels (string #1).         | yes      |
-| pv-ipm-temperature            | Number:Temperature        | Temperature of the IPM.                              | yes      |
-| pv-boost-temperature          | Number:Temperature        | Boost temperature.                                   | yes      |
-| temperature-4                 | Number:Temperature        | Temperature #4.                                      | yes      |
-| pv2-temperature               | Number:Temperature        | Temperature of the solar panels (string #2).         | yes      |
-| battery-type                  | Number:Dimensionless      | Type code of the battery.                            | yes      |
-| battery-temperature           | Number:Temperature        | Battery temperature.                                 | yes      |
-| battery-voltage               | Number:ElectricPotential  | Battery voltage.                                     | yes      |
-| battery-display               | Number:Dimensionless      | Battery display code.                                | yes      |
-| battery-soc                   | Number:Dimensionless      | Battery State of Charge percent.                     | yes      |
-| system-fault-0                | Number:Dimensionless      | System fault code #0.                                | yes      |
-| system-fault-1                | Number:Dimensionless      | System fault code #1.                                | yes      |
-| system-fault-2                | Number:Dimensionless      | System fault code #2.                                | yes      |
-| system-fault-3                | Number:Dimensionless      | System fault code #3.                                | yes      |
-| system-fault-4                | Number:Dimensionless      | System fault code #4.                                | yes      |
-| system-fault-5                | Number:Dimensionless      | System fault code #5.                                | yes      |
-| system-fault-6                | Number:Dimensionless      | System fault code #6.                                | yes      |
-| system-fault-7                | Number:Dimensionless      | System fault code #7.                                | yes      |
-| system-work-mode              | Number:Dimensionless      | System work mode code.                               | yes      |
-| sp-display-status             | Number:Dimensionless      | Solar panel display status code.                     | yes      |
-| constant-power-ok             | Number:Dimensionless      | Constant power OK code.                              | yes      |
-| load-percent                  | Number:Dimensionless      | Percent of full load.                                | yes      |
-| rac                           | Number:Power              | Reactive 'power' (var).                              | yes      |
-| erac-today                    | Number:Energy             | Reactive 'energy' today (kvarh).                     | yes      |
-| erac-total                    | Number:Energy             | Total reactive 'energy' (kvarh).                     | yes      |
+| Channel                        | Type                      | Description                                          | Advanced |
+|--------------------------------|---------------------------|------------------------------------------------------|----------|
+| system-status                  | Number:Dimensionless      | Inverter status code.                                |          |
+| pv1-voltage                    | Number:ElectricPotential  | DC voltage from solar panel string #1.               | yes      |
+| pv2-voltage                    | Number:ElectricPotential  | DC voltage from solar panel string #2.               | yes      |
+| pv1-current                    | Number:ElectricCurrent    | DC current from solar panel string #1.               | yes      |
+| pv2-current                    | Number:ElectricCurrent    | DC current from solar panel string #2.               | yes      |
+| pv-power                       | Number:Power              | Total DC solar input power.                          |          |
+| pv1-power                      | Number:Power              | DC power from solar panel string #1.                 | yes      |
+| pv2-power                      | Number:Power              | DC power from solar panel string #2.                 | yes      |
+| grid-frequency                 | Number:Frequency          | Frequency of the grid.                               | yes      |
+| grid-voltage-r                 | Number:ElectricPotential  | Voltage of the grid (phase #R).                      |          |
+| grid-voltage-s                 | Number:ElectricPotential  | Voltage of the grid phase #S.                        | yes      |
+| grid-voltage-t                 | Number:ElectricPotential  | Voltage of the grid phase #T.                        | yes      |
+| grid-voltage-rs                | Number:ElectricPotential  | Voltage of the grid phases #RS.                      | yes      |
+| grid-voltage-st                | Number:ElectricPotential  | Voltage of the grid phases #ST.                      | yes      |
+| grid-voltage-tr                | Number:ElectricPotential  | Voltage of the grid phases #TR.                      | yes      |
+| inverter-current               | Number:ElectricCurrent    | AC current from inverter.                            | yes      |
+| inverter-current-r             | Number:ElectricCurrent    | AC current from inverter (phase #R).                 | yes      |
+| inverter-current-s             | Number:ElectricCurrent    | AC current from inverter phase #S.                   | yes      |
+| inverter-current-t             | Number:ElectricCurrent    | AC current from inverter phase #T.                   | yes      |
+| inverter-power                 | Number:Power              | Total AC output power from inverter.                 |          |
+| inverter-power-r               | Number:Power              | AC power from inverter (phase #R).                   |          |
+| inverter-power-s               | Number:Power              | AC power from inverter phase #S.                     | yes      |
+| inverter-power-t               | Number:Power              | AC power from inverter phase #T.                     | yes      |
+| inverter-va                    | Number:Power              | AC VA from inverter.                                 | yes      |
+| export-power                   | Number:Power              | Power exported to grid.                              |          |
+| export-power-r                 | Number:Power              | Power exported to grid phase #R.                     | yes      |
+| export-power-s                 | Number:Power              | Power exported to grid phase #S.                     | yes      |
+| export-power-t                 | Number:Power              | Power exported to grid phase #T.                     | yes      |
+| import-power                   | Number:Power              | Power imported from grid.                            |          |
+| import-power-r                 | Number:Power              | Power imported from grid phase #R.                   | yes      |
+| import-power-s                 | Number:Power              | Power imported from grid phase #S.                   | yes      |
+| import-power-t                 | Number:Power              | Power imported from grid phase #T.                   | yes      |
+| load-power                     | Number:Power              | Power supplied to load.                              |          |
+| load-power-r                   | Number:Power              | Power supplied to load phase #R.                     | yes      |
+| load-power-s                   | Number:Power              | Power supplied to load phase #S.                     | yes      |
+| load-power-t                   | Number:Power              | Power supplied to load phase #T.                     | yes      |
+| charge-power                   | Number:Power              | Battery charge power.                                |          |
+| charge-current                 | Number:ElectricCurrent    | Battery charge current.                              | yes      |
+| discharge-power                | Number:Power              | Battery discharge power.                             |          |
+| discharge-va                   | Number:Power              | Battery discharge VA.                                | yes      |
+| pv-energy-today                | Number:Energy             | DC energy collected by solar panels today.           |          |
+| pv1-energy-today               | Number:Energy             | DC energy collected by solar panels string #1 today. | yes      |
+| pv2-energy-today               | Number:Energy             | DC energy collected by solar panels string #2 today. | yes      |
+| pv-energy-total                | Number:Energy             | Total DC energy collected by solar panels.           |          |
+| pv1-energy-total               | Number:Energy             | Total DC energy collected by solar panels string #1. | yes      |
+| pv2-energy-total               | Number:Energy             | Total DC energy collected by solar panels string #2. | yes      |
+| inverter-energy-today          | Number:Energy             | AC energy produced by inverter today.                |          |
+| inverter-energy-total          | Number:Energy             | Total AC energy produced by inverter.                |          |
+| export-energy-today            | Number:Energy             | Energy exported today.                               |          |
+| export-energy-total            | Number:Energy             | Total energy exported.                               |          |
+| import-energy-today            | Number:Energy             | Energy imported today.                               |          |
+| import-energy-total            | Number:Energy             | Total energy imported.                               |          |
+| load-energy-today              | Number:Energy             | Energy supplied to load today.                       |          |
+| load-energy-total              | Number:Energy             | Total energy supplied to load.                       |          |
+| import-charge-energy-today     | Number:Energy             | Energy imported to charge battery today.             |          |
+| import-charge-energy-total     | Number:Energy             | Total energy imported to charge battery.             |          |
+| inverter-charge-energy-today   | Number:Energy             | Inverter energy to charge battery today.             |          |
+| inverter-charge-energy-total   | Number:Energy             | Total inverter energy to charge battery.             |          |
+| discharge-energy-today         | Number:Energy             | Energy consumed from battery.                        |          |
+| discharge-energy-total         | Number:Energy             | Total energy consumed from battery.                  |          |
+| total-work-time                | Number:Time               | Total work time of the system.                       | yes      |
+| p-bus-voltage                  | Number:ElectricPotential  | P Bus voltage.                                       | yes      |
+| n-bus-voltage                  | Number:ElectricPotential  | N Bus voltage.                                       | yes      |
+| sp-bus-voltage                 | Number:ElectricPotential  | SP Bus voltage.                                      | yes      |
+| pv-temperature                 | Number:Temperature        | Temperature of the solar panels (string #1).         | yes      |
+| pv-ipm-temperature             | Number:Temperature        | Temperature of the IPM.                              | yes      |
+| pv-boost-temperature           | Number:Temperature        | Boost temperature.                                   | yes      |
+| temperature-4                  | Number:Temperature        | Temperature #4.                                      | yes      |
+| pv2-temperature                | Number:Temperature        | Temperature of the solar panels (string #2).         | yes      |
+| battery-type                   | Number:Dimensionless      | Type code of the battery.                            | yes      |
+| battery-temperature            | Number:Temperature        | Battery temperature.                                 | yes      |
+| battery-voltage                | Number:ElectricPotential  | Battery voltage.                                     | yes      |
+| battery-voltage2               | Number:ElectricPotential  | Battery voltage #2.                                  | yes      |
+| battery-display                | Number:Dimensionless      | Battery display code.                                | yes      |
+| battery-soc                    | Number:Dimensionless      | Battery State of Charge percent.                     | yes      |
+| battery-discharge-va           | Number:Power              | Battery discharging reactive power.                  | yes      |
+| battery-discharge-watt         | Number:Power              | Battery discharging power.                           | yes      |
+| battery-discharge-energy-today | Number:Energy             | Battery discharge energy today.                      | yes      |
+| battery-discharge-energy-total | Number:Energy             | Total battery discharge energy.                      | yes      |
+| system-fault-0                 | Number:Dimensionless      | System fault code #0.                                | yes      |
+| system-fault-1                 | Number:Dimensionless      | System fault code #1.                                | yes      |
+| system-fault-2                 | Number:Dimensionless      | System fault code #2.                                | yes      |
+| system-fault-3                 | Number:Dimensionless      | System fault code #3.                                | yes      |
+| system-fault-4                 | Number:Dimensionless      | System fault code #4.                                | yes      |
+| system-fault-5                 | Number:Dimensionless      | System fault code #5.                                | yes      |
+| system-fault-6                 | Number:Dimensionless      | System fault code #6.                                | yes      |
+| system-fault-7                 | Number:Dimensionless      | System fault code #7.                                | yes      |
+| system-work-mode               | Number:Dimensionless      | System work mode code.                               | yes      |
+| sp-display-status              | Number:Dimensionless      | Solar panel display status code.                     | yes      |
+| constant-power-ok              | Number:Dimensionless      | Constant power OK code.                              | yes      |
+| load-percent                   | Number:Dimensionless      | Percent of full load.                                | yes      |
+| rac                            | Number:Power              | Reactive 'power' (var).                              | yes      |
+| erac-today                     | Number:Energy             | Reactive 'energy' today (kvarh).                     | yes      |
+| erac-total                     | Number:Energy             | Total reactive 'energy' (kvarh).                     | yes      |
+| charge-va                      | Number:Power              | Charging reactive power.                             | yes      |
+| inverter-clock-offset          | Number:Time               | Time offset of inverter clock vs. OH system clock.   | yes      |
+| inverter-fan-speed             | Number:Dimensionless      | Inverter fan speed percent.                          | yes      |
+| pv3-voltage                    | Number:ElectricPotential  | Voltage from solar panel string #3.                  | yes      |
+| pv3-current                    | Number:ElectricCurrent    | Current from solar panel string #3.                  | yes      |
+| pv3-power                      | Number:Power              | Power from solar panel string #3.                    | yes      |
+| pv4-voltage                    | Number:ElectricPotential  | Voltage from solar panel string #4.                  | yes      |
+| pv4-current                    | Number:ElectricCurrent    | Current from solar panel string #4.                  | yes      |
+| pv4-power                      | Number:Power              | Power from solar panel string #4.                    | yes      |
+| pv3-energy-today               | Number:Energy             | Solar DC energy collected by string #3 today.        | yes      |
+| pv3-energy-total               | Number:Energy             | Total solar DC energy collected by string #3.        | yes      |
+| power-factor                   | Number:Percent            | Electrical power factor                              | yes      |
+| eps-voltage-r                  | Number:ElectricPotential  | Emergency Power Supply voltage (phase #R).           | yes      |
+| eps-voltage-s                  | Number:ElectricPotential  | Emergency Power Supply voltage (phase #S).           | yes      |
+| eps-voltage-t                  | Number:ElectricPotential  | Emergency Power Supply voltage (phase #T).           | yes      |
+| eps-current-r                  | Number:ElectricCurrent    | Emergency Power Supply current (phase #R).           | yes      |
+| eps-current-s                  | Number:ElectricCurrent    | Emergency Power Supply current (phase #S).           | yes      |
+| eps-current-t                  | Number:ElectricCurrent    | Emergency Power Supply current (phase #T).           | yes      |
+| eps-power                      | Number:Power              | Total Emergency Power Supply power.                  | yes      |
+| eps-power-r                    | Number:Power              | Emergency Power Supply power (phase #R).             | yes      |
+| eps-power-s                    | Number:Power              | Emergency Power Supply power (phase #S).             | yes      |
+| eps-power-t                    | Number:Power              | Emergency Power Supply power (phase #T).             | yes      |
 
 ## Rule Actions
 
 This binding includes rule actions, which allow you to setup programs for battery charging and discharging.
 Each inverter thing has a separate actions instance, which can be retrieved as follows.
 
-```php
+```java
 val growattActions = getActions("growatt", "growatt:inverter:home:sph")
 ```
 
 Where the first parameter must always be `growatt` and the second must be the full inverter thing UID.
 Once the action instance has been retrieved, you can invoke the following method:
 
-```php
-growattActions.setupBatteryProgram(int programMode, @Nullable Integer powerLevel, @Nullable Integer stopSOC, @Nullable Boolean enableAcCharging, @Nullable String startTime, @Nullable String stopTime, @Nullable Boolean enableProgram) 
+```java
+growattActions.setupBatteryProgram(int programMode, @Nullable Integer powerLevel, @Nullable Integer stopSOC, @Nullable Boolean enableAcCharging, @Nullable String startTime, @Nullable String stopTime, @Nullable Boolean enableProgram)
 ```
 
 The meaning of the method parameters is as follows:
@@ -164,11 +192,11 @@ The meaning of the method parameters is as follows:
 
 Notes:
 
--<sup>1)</sup> ***WARNING*** inverters have different program `time segment`'s for each `programMode`.
+-<sup>1)</sup> **WARNING** inverters have different program `time segment`'s for each `programMode`.
 To prevent unexpected results do not overlap the `time segment`'s.
 
 -<sup>2)</sup> Depending on inverter type and `programMode` certain parameters may accept 'null' values.
-The 'mix', 'sph' and 'spa' types set the battery program in a single command, so all parameters - except `enableAcCharging` - <u>**must**</u> be ***non-*** 'null'.
+The 'mix', 'sph' and 'spa' types set the battery program in a single command, so all parameters - except `enableAcCharging` - <u>**must**</u> be _**non-**_ 'null'.
 By contrast 'tlx' types set the battery program in up to four partial commands, and you may pass 'null' parameters in order to omit a partial command.
 The permission for passing 'null' parameters, and the effect of such 'null' parameters, is shown in detail in the table below:
 
@@ -180,9 +208,26 @@ The permission for passing 'null' parameters, and the effect of such 'null' para
 | enableAcCharging                   | If 'null' the prior `enableAcCharging` (if any) continues to apply. Shall <u>**not**</u> be 'null' on 'mix' inverter 'Battery First' program. |
 | startTime, stopTime, enableProgram | May be 'null' on 'tlx' inverters whereby the prior `programMode` / `time segment` continues to apply - note all 'null' resp. non-'null'.      |
 
-Example:
+### Example program to charge battery during night-time low tariff time window
 
-```php
+The following is an example program to charge the battery during a night-time low tariff period, and depending on the forecast solar energy for the coming day.
+
+```java
+// solar power constants
+val Integer programMode = 1 // 0 = Load First, 1 = Battery First, 2 = Grid First
+val Integer powerLevel = 23 // percent
+val batteryFull = 6500.0 // Wh
+val batteryMin = 500.0 // Wh
+val daylightConsumption = 10000.0 // Wh
+val offPeakConsumption = 2000.0 // Wh
+val maximumSOC = 100.0 // percent
+val minimumSOC = 10.0 // percent
+val maxChargingPower = 4000.0 // W
+val offPeakEndMinute = 420 // 07:00
+val offPeakStartMinute = 20 // 00:20
+
+..
+
 rule "Setup Solar Battery Charging Program"
 when
     Time cron "0 10 0 ? * * *"
@@ -190,39 +235,138 @@ then
     val growattActions = getActions("growatt", "growatt:inverter:home:ABCD1234") // thing UID
     if (growattActions === null) {
         logWarn("Rules", "growattActions is null")
-    } else {
-
-        // fixed algorithm parameters
-        val Integer programMode = 1 // 0 = Load First, 1 = Battery First, 2 = Grid First
-        val Integer powerLevel = 23 // percent
-        val Boolean enableAcCharging = true
-        val String startTime = "00:20"
-        val String stopTime = "07:00"
-        val Boolean enableProgram = true
-
-        // calculation intermediaries
-        val batteryFull = 6500.0 // Wh
-        val batteryMin = 500.0 // Wh
-        val daylightConsumption = 10000.0 // Wh
-        val maximumSOC = 100.0 // percent
-        val minimumSOC = 20.0 // percent
-
-
-        // calculate stop SOC based on weather forecast
-        val Double solarForecast = (ForecastSolar_PV_Whole_Site_Forecast_Today.state as QuantityType<Energy>).toUnit("Wh").doubleValue()
-        var Double targetSOC = (100.0 * (batteryMin + daylightConsumption - solarForecast)) / batteryFull
-        if (targetSOC > maximumSOC) {
-            targetSOC = maximumSOC
-        } else if (targetSOC < minimumSOC) {
-            targetSOC = minimumSOC
-        }
-
-        // convert to integer
-        val Integer stopSOC = targetSOC.intValue() // percent
-
-        logInfo("Rules", "Setup Charging Program:{solarForecast:" + solarForecast + "Wh, programMode:" + programMode + ", powerLevel:" + powerLevel + "%, stopSOC:" + stopSOC + "%, enableCharging:" + enableAcCharging + ", startTime:" + startTime + ", stopTime:" + stopTime + ", enableProgram:" + enableProgram +"}")
-        growattActions.setupBatteryProgram(programMode, powerLevel, stopSOC, enableAcCharging, startTime, stopTime, enableProgram)
+        return
     }
+
+    // variable algorithm parameters
+    var Integer startMinute = offPeakStartMinute
+    var Boolean enableProgram = true
+    var Boolean enableAcCharging = true
+
+    // calculate required stop SOC based on weather forecast
+    val Double solarForecast = (Solar_Forecast_Energy_Today_Full.state as QuantityType<Energy>).toUnit("Wh").doubleValue()
+    var Double targetSOC = (100.0 * (batteryMin + daylightConsumption - solarForecast)) / batteryFull
+    if (targetSOC > maximumSOC) {
+        targetSOC = maximumSOC
+    }
+
+    // calculate notional SOC at end of off peak period
+    var Double morningSOC = ((Battery_SOC_Level.state as QuantityType<Dimensionless>).toUnit("one").doubleValue() - (offPeakConsumption / batteryFull)) * 100.0
+    if (morningSOC < minimumSOC) {
+        morningSOC = minimumSOC
+    }
+
+    // calculate charging start time (if any)
+    if (targetSOC > morningSOC) {
+        startMinute = (offPeakEndMinute - (60.0 * (targetSOC - morningSOC) * batteryFull / (powerLevel * maxChargingPower))).intValue()
+        if (startMinute < offPeakStartMinute) {
+            startMinute = offPeakStartMinute
+        }
+    } else {
+        enableProgram = false
+        enableAcCharging = false
+        targetSOC = minimumSOC
+    }
+
+    // convert times to strings
+    val String startTime = String.format("%02d:%02d", startMinute / 60, startMinute % 60);
+    val String stopTime = String.format("%02d:%02d", offPeakEndMinute / 60, offPeakEndMinute % 60);
+
+    // convert to integer percent
+    val Integer stopSOC = targetSOC.intValue()
+
+    logInfo("Rules", "Setup Charging Program(morningSOC=" + morningSOC + "%, solarForecast=" + solarForecast + "Wh, programMode=" + programMode + ", powerLevel=" + powerLevel +
+        "%, stopSOC=" + stopSOC + "%, enableCharging=" + enableAcCharging + ", startTime=" + startTime + ", stopTime=" + stopTime + ", enableProgram=" + enableProgram +")")
+    growattActions.setupBatteryProgram(programMode, powerLevel, stopSOC, enableAcCharging, startTime, stopTime, enableProgram)
+end
+```
+
+### Example program to charge battery prior to an extra high tariff window in the day
+
+The following is an example program to charge the battery in preparation to avoid importing energy during a coming extra high tariff time window.
+
+```java
+// solar power constants
+var pauseProgramLastSetupDate
+
+..
+
+rule "Setup Solar Power Pause Program"
+when
+    Time cron "59 0 8-22 ? * * *" or
+    Item Power_Pause_Program_Start changed
+then
+    val programSetupDate = now.toLocalDate()
+    if (programSetupDate.equals(pauseProgramLastSetupDate)) {
+        logInfo("Rules", "Power Pause program already setup for " + programSetupDate)
+        return
+    }
+
+    val pauseStartState = Power_Pause_Program_Start.state
+    if (pauseStartState == NULL || pauseStartState == UNDEF) {
+        logWarn("Rules", "Power_Pause_Program_Start state is null or undefined")
+        return
+    }
+
+    var pauseStartDateTime = (pauseStartState as DateTimeType).getZonedDateTime()
+    if (pauseStartDateTime.getHour() < 8) {
+        logWarn("Rules", "Power Pause program shall not start before 08:00h => " + pauseStartDateTime)
+        return
+    }
+
+    val programDuration = Duration.between(now, pauseStartDateTime)
+    if (programDuration.isNegative() || programDuration.toDays() > 0) {
+        logInfo("Rules", "Power Pause program date is not today => " + pauseStartDateTime)
+        return
+    }
+    if (programDuration.toHours() < 1) {
+        logWarn("Rules", "Power Pause program lead time is too short => " + pauseStartDateTime)
+        return
+    }
+
+    // setup program to start late and end early in case inverter clock not in synch
+    val delta = 600
+    pauseStartDateTime = pauseStartDateTime.minusSeconds(delta)
+    val chargeStartDateTime = pauseStartDateTime.minusSeconds(programDuration.toSeconds()).plusSeconds(2 * delta)
+    if (chargeStartDateTime.isBefore(now)) {
+        logWarn("Rules", "Power Pause program start time is in the past")
+        return
+    }
+
+    val formatter = DateTimeFormatter.ofPattern("HH:mm");
+    val String stopTime = pauseStartDateTime.format(formatter)
+    val String startTime = chargeStartDateTime.format(formatter)
+
+    val socState = Battery_SOC_Level.state
+    if (socState == NULL || socState == UNDEF) {
+        logWarn("Rules", "Battery_SOC_Level is null or undefined")
+        return
+    }
+    val currentSOC = (socState as Number)
+
+    var targetPowerLevel = ((maximumSOC - currentSOC) * batteryFull) / (maxChargingPower * (programDurationSeconds / 3600.0))
+    if (targetPowerLevel < 23.0) {
+        targetPowerLevel = 23.0
+    } else if (targetPowerLevel > 100.0) {
+        targetPowerLevel = 100.0
+    }
+    val Integer powerLevel = targetPowerLevel.intValue()
+
+    val Integer programMode = 1 // 0 = Load First, 1 = Battery First, 2 = Grid First
+    val Boolean enableAcCharging = true
+    val Boolean enableProgram = true
+    val Integer stopSOC = maximumSOC.intValue()
+
+    val growattActions = getActions("growatt", "growatt:inverter:home:ABCD1234") // thing UID
+    if (growattActions === null) {
+        logWarn("Rules", "growattActions is null")
+        return
+    }
+
+    pauseProgramLastSetupDate = programSetupDate
+    logInfo("Rules", "Setup Solar Power Pause Program(programMode=" + programMode + ", powerLevel=" + powerLevel + "%, stopSOC=" + stopSOC + "%, enableCharging=" +
+        enableAcCharging + ", startTime=" + startTime + ", stopTime=" + stopTime + ", enableProgram=" + enableProgram +")")
+    growattActions.setupBatteryProgram(programMode, powerLevel, stopSOC, enableAcCharging, startTime, stopTime, enableProgram)
 end
 ```
 
@@ -293,7 +437,7 @@ The installation is as follows:
 
 A suggested Grott configuration for openHAB is as follows:
 
-```php
+```ini
 [Generic]
 mode = proxy
 compat = False
@@ -314,14 +458,14 @@ extvar = {"url": "http://127.0.0.1:8080/growatt"} // or ip address of openHAB (i
 ### Start Grott as a Service
 
 Finally you should set your computer to starts the Grott application automatically as a service when your computer starts.
-For Windows see wiki: https://github.com/johanmeijer/grott/wiki/Grott-as-a-service-(Windows)
-For Linux see wiki: https://github.com/johanmeijer/grott/wiki/Grott-as-a-service-(Linux)
+For Windows see wiki: <https://github.com/johanmeijer/grott/wiki/Grott-as-a-service-(Windows)>
+For Linux see wiki: <https://github.com/johanmeijer/grott/wiki/Grott-as-a-service-(Linux)>
 The service configuration for Linux is summarised below:
 
 - Copy the `grott.service` file to the `/etc/systemd/system/` folder
 - Modify `grott.service` to enter your user name; the Grott settings; the path to Python; and the path to the Grott application:
 
-```php
+```ini
 [Service]
 SyslogIdentifier=grott
 User=<username>  // your username
@@ -346,4 +490,4 @@ Otherwise if the computer changes its ip address dynamically, it can no longer i
 This means **YOU WILL NO LONGER BE ABLE TO RESET THE INVERTER** to its original settings!
 
 You need to use the Growatt App to tell the inverter to send its logging data to the Grott proxy instead of to the cloud.
-See wiki: https://github.com/johanmeijer/grott/wiki/Rerouting-Growatt-Wifi-TCPIP-data-via-your-Grott-Server for more information.
+See wiki: <https://github.com/johanmeijer/grott/wiki/Rerouting-Growatt-Wifi-TCPIP-data-via-your-Grott-Server> for more information.
