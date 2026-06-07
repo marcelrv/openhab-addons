@@ -123,7 +123,6 @@ Import-Package: \
 	org.openhab.core.test;version='[5.2.0,5.2.1)',\
 	org.openhab.core.thing;version='[5.2.0,5.2.1)',\
 	org.openhab.core.transform;version='[5.2.0,5.2.1)',\
-	biz.aQute.tester.junit-platform;version='[7.2.3,7.2.4)',\
 	jakarta.annotation-api;version='[2.1.1,2.1.2)',\
 	jakarta.inject.jakarta.inject-api;version='[1.0.5,1.0.6)',\
 	bcpkix;version='[1.84.0,1.84.1)',\
@@ -144,10 +143,11 @@ Import-Package: \
 	org.graalvm.truffle.truffle-nfi;version='[25.0.1,25.0.2)',\
 	org.graalvm.truffle.truffle-runtime;version='[25.0.1,25.0.2)',\
 	com.fasterxml.jackson.core.jackson-annotations;version='[2.21.0,2.21.1)',\
-	com.fasterxml.jackson.core.jackson-core;version='[2.21.3,2.21.4)',\
-	com.fasterxml.jackson.core.jackson-databind;version='[2.21.3,2.21.4)',\
 	org.graalvm.python.python-language;version='[25.0.1,25.0.2)',\
 	org.graalvm.python.python-resources;version='[25.0.1,25.0.2)',\
 	org.osgi.service.cm;version='[1.6.1,1.6.2)',\
 	org.apache.commons.commons-codec;version='[1.17.1,1.17.2)',\
-	jakarta.ws.rs-api;version='[2.1.6,2.1.7)'
+	jakarta.ws.rs-api;version='[2.1.6,2.1.7)',\
+	biz.aQute.tester.junit-platform;version='[7.3.0,7.3.1)',\
+	com.fasterxml.jackson.core.jackson-core;version='[2.21.4,2.21.5)',\
+	com.fasterxml.jackson.core.jackson-databind;version='[2.21.4,2.21.5)'
